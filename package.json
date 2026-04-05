@@ -4,8 +4,10 @@
   "main": "index.js",
   "scripts": {
     "build": "tsc",
-    "test": "tsc && node dist/test.js",
-    "dev": "tsc && node dist/test.js",
+    "test": "jest",
+    "test:watch": "jest --watch",
+    "test:coverage": "jest --coverage",
+    "dev": "jest --watch",
     "start": "node dist/main.js",
     "process": "node process-file.js",
     "clean": "rmdir /s /q dist 2>nul || echo Nada para limpar"
@@ -15,7 +17,10 @@
   "license": "ISC",
   "description": "",
   "devDependencies": {
+    "@types/jest": "^30.0.0",
     "@types/node": "^25.5.2",
+    "jest": "^30.3.0",
+    "ts-jest": "^29.4.9",
     "typescript": "^6.0.2"
   }
 }

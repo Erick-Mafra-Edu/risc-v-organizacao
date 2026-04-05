@@ -3,7 +3,12 @@
   "version": "1.0.0",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "build": "tsc",
+    "test": "tsc && node dist/test.js",
+    "dev": "tsc && node dist/test.js",
+    "start": "node dist/main.js",
+    "process": "node process-file.js",
+    "clean": "rmdir /s /q dist 2>nul || echo Nada para limpar"
   },
   "keywords": [],
   "author": "",

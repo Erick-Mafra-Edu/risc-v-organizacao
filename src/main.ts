@@ -1,5 +1,5 @@
 import { readFileSync } from "node:fs";
-import { IntructionDetector } from "./instructionDetector";
+import { InstructionDetector } from "./instructionDetector";
 
     const inputFile = process.argv[2] || "input.txt";
 
@@ -7,6 +7,6 @@ import { IntructionDetector } from "./instructionDetector";
 
 
     input.split("\n").forEach(line => {
-        const instruction = IntructionDetector.detectInstruction(line);
+        const instruction = InstructionDetector.detectInstruction(line);
         console.log(instruction.formatedString());
     });

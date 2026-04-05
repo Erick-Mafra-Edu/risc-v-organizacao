@@ -8,7 +8,7 @@ class B_Instruction extends Instruction {
         return `Instruction of Type B with funct3:${this.funct3} and rs1:${this.rs1} and rs2:${this.rs2} and imm:${this.imm}` 
     }
     constructor(
-        opcode:string,
+        opcode:InstructionOpcode | string,
         imm_4_1:string,
         imm_10_5:string,
         funct3:string,

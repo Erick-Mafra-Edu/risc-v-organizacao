@@ -5,3 +5,4 @@ export * from "./B_Instruction";
 export * from "./U_Instruction";
 export * from "./J_Instruction";
 export * from "./SYSTEM_Instruction";
+//# sourceMappingURL=index.d.ts.map

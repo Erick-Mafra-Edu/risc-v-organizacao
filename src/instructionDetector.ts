@@ -75,6 +75,14 @@ class InstructionDetector{
                     instructionString.slice(20, 25),  // rd
                     instructionString.slice(0, 20)    // imm[20|10:1|11|19:12]
                 );
+            case InstructionOpcode.SYSTEM_Type:
+                return new Instructions.SYSTEM_Instruction(
+                    opcode,
+                    instructionString.slice(20, 25),  // rd
+                    instructionString.slice(17, 20),  // funct3
+                    instructionString.slice(12, 17),  // rs1
+                    instructionString.slice(0, 12)    // imm[11:0]
+                );
             default:
                 throw new Error("Opcode not recognized");
         }

@@ -9,10 +9,11 @@ class B_Instruction extends Instruction {
     }
     constructor(
         opcode:string,
+        imm_4_1:string,
+        imm_10_5:string,
         funct3:string,
         rs1:string,
         rs2:string,
-        imm:string
     ){
         super(opcode);
         if(this.opcode !== InstructionOpcode.B_Type){
@@ -21,7 +22,7 @@ class B_Instruction extends Instruction {
         this.funct3 = funct3;
         this.rs1 = rs1;
         this.rs2 = rs2;
-        this.imm = imm;
+        this.imm = imm_10_5 + imm_4_1 + "0";
     }
 }
 export default B_Instruction;

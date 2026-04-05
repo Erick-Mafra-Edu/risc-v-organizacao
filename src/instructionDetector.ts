@@ -52,7 +52,8 @@ class IntructionDetector{
                     instructionString.slice(17,20),
                     instructionString.slice(12,17),
                     instructionString.slice(7,12),
-                    instructionString.slice(0,7)
+                    instructionString.slice(0,7),
+                    instructionString.slice(25,32)
                 );
             case ((InstructionOpcode.UAUIPC_Type) || (InstructionOpcode.ULUI_Type)):
                 return new Instructions.U_Instruction(

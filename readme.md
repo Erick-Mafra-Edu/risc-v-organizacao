@@ -96,7 +96,106 @@ console.log(instruction.formatedString());
 // Output: Instruction of Type U with rd:00101 and imm:00001111110000010000
 ```
 
-## 📝 Formato do Arquivo de Entrada
+## � Scripts NPM Disponíveis
+
+Este projeto oferece vários scripts npm para facilitar o desenvolvimento e o uso:
+
+### `npm run build`
+Compila todo o código TypeScript para JavaScript
+
+```bash
+npm run build
+```
+
+**O que faz:** Executa `tsc` e gera arquivos compilados na pasta `dist/`
+
+---
+
+### `npm test` ou `npm run dev`
+Executa a suite de testes com o arquivo padrão `input.txt`
+
+```bash
+npm test
+```
+
+**O que faz:** 
+- Compila o projeto
+- Processa 10 instruções RISC-V de exemplo
+- Exibe resultado formatado e contagem de sucessos/erros
+
+---
+
+### `npm run process`
+Processa um arquivo de instruções hexadecimais com relatório detalhado
+
+#### Uso Padrão (input.txt)
+```bash
+npm run process
+```
+
+#### Com Arquivo Customizado
+```bash
+npm run process -- seu-arquivo.txt
+```
+
+**Exemplos:**
+```bash
+# Processar arquivo padrão
+npm run process
+
+# Processar arquivo customizado
+npm run process -- sample-input.txt
+
+# Arquivo com caminho completo
+npm run process -- "C:\meus-arquivos\instruções.txt"
+```
+
+**O que faz:**
+- Lê instruções hexadecimais do arquivo
+- Converte para binário automaticamente
+- Detecta o tipo de instrução
+- Exibe resultado formatado com emojis
+- Mostra resumo com taxa de sucesso (100%)
+
+**Exemplo de Saída:**
+```
+╔════════════════════════════════════════════════════════════════╗
+║        RISC-V Instruction Detector - Processador de Arquivo     ║
+╚════════════════════════════════════════════════════════════════╝
+
+📄 Arquivo: C:\Users\Erick\RISC-V\input.txt
+📊 Total de instruções: 10
+
+──────────────────────────────────────────────────────────────────────
+
+[  1] ✅ Successo
+     Hexadecimal: 0FC10297
+     Binário:     00001111110000010000001010010111
+     Formato:     Instruction of Type U with rd:00101 and imm:00001111110000010000
+
+[  2] ✅ Successo
+     ...
+
+──────────────────────────────────────────────────────────────────────
+
+📈 Resumo:
+   ✅ Sucesso: 10
+   ❌ Erros:   0
+   📊 Taxa:    100.0%
+```
+
+---
+
+### Outros Scripts
+
+| Script | Comando | Função |
+|--------|---------|--------|
+| **start** | `npm start` | Executa o programa principal |
+| **clean** | `npm run clean` | Remove a pasta `dist/` |
+
+Para mais detalhes sobre os scripts, consulte [SCRIPTS.md](SCRIPTS.md)
+
+## �📝 Formato do Arquivo de Entrada
 
 O arquivo `input.txt` contém instruções hexadecimais, uma por linha:
 

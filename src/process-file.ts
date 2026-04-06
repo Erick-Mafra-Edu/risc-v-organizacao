@@ -2,13 +2,20 @@ import * as fs from "fs";
 import * as path from "path";
 import { InstructionDetector } from "./instructionDetector";
 
+const formatDisplayInDecimal = (formattedInstruction: string): string => {
+    // Converte apenas campos binários para decimal sem alterar o resultado interno.
+    return formattedInstruction.replace(/\b[01]{2,}\b/g, (binaryField) =>
+        parseInt(binaryField, 2).toString(10)
+    );
+};
+
 // Get the file path from command line arguments
 const args = process.argv.slice(2);
 const filePath = args[0] || "./input.txt";
 
 // Validate file exists
 if (!fs.existsSync(filePath)) {
-    console.error(` Erro: Arquivo '${filePath}' não encontrado`);
+    console.error(` Erro: Arquivo '${filePath}' n�o encontrado`);
     process.exit(1);
 }
 
@@ -21,8 +28,8 @@ console.log("|        RISC-V Instruction Detector - Processador de Arquivo    |"
 console.log("===================================================================\n");
 
 console.log(` Arquivo: ${path.resolve(filePath)}`);
-console.log(` Total de instruções: ${instructions.length}\n`);
-console.log("─".repeat(70));
+console.log(` Total de instrucoes: ${instructions.length}\n`);
+console.log("-".repeat(70));
 
 let successCount = 0;
 let errorCount = 0;
@@ -30,31 +37,33 @@ let errorCount = 0;
 instructions.forEach((hexInstruction: string, index: number) => {
     try {
         const trimmedHex = hexInstruction.trim();
-        
+
         if (!trimmedHex) return;
 
-        // Cria, detecta e formata a instrução
+        // Cria, detecta e formata a instru��o
         const detector = new InstructionDetector(trimmedHex);
-        
-        // detecta a instrução
+
+        // detecta a instrucoo
         const instruction = InstructionDetector.detectInstruction((detector as any).InstructionBinary);
-        
+
         console.log(`\n[${String(index + 1).padStart(3)}] Successo`);
         console.log(`     Hexadecimal: ${trimmedHex.toUpperCase()}`);
-        console.log(`     Binário:     ${(detector as any).InstructionBinary}`);
-        console.log(`     Formato:     ${instruction.formatedString()}`);
-        
+        // console.log(`     Binario:     ${(detector as any).InstructionBinary}`);
+        // console.log(`     Decimal:     ${parseInt((detector as any).InstructionBinary, 2)}`);
+        console.log(`     Formato binario:     ${instruction.formatedString()}`);
+        console.log(`     Formato decimal:     ${formatDisplayInDecimal(instruction.formatedString())}\n`);
+
         successCount++;
     } catch (error) {
         errorCount++;
         console.error(`\n[${String(index + 1).padStart(3)}] Erro`);
-        console.error(`     Hex:      ${hexInstruction.trim()}`);
+        // console.error(`     Hex:      ${hexInstruction.trim()}`);
         console.error(`     Mensagem: ${(error as Error).message}`);
     }
 });
 
-console.log("\n" + "─".repeat(70));
-console.log(`\n Resumo:`);
-console.log(`    Sucesso: ${successCount}`);
-console.log(`    Erros:   ${errorCount}`);
-console.log(`    Taxa:    ${((successCount / (successCount + errorCount)) * 100).toFixed(1)}%\n`);
+// console.log("\n" + "-".repeat(70));
+// console.log(`\n Resumo:`);
+// console.log(`    Sucesso: ${successCount}`);
+// console.log(`    Erros:   ${errorCount}`);
+// console.log(`    Taxa:    ${((successCount / (successCount + errorCount)) * 100).toFixed(1)}%\n`);

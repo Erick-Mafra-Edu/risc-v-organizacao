@@ -1,0 +1,1 @@
+{"version":3,"file":"instructionDetector.d.ts","sourceRoot":"","sources":["../src/instructionDetector.ts"],"names":[],"mappings":"AAAA,OAAO,EAAmB,WAAW,EAAC,MAAM,oBAAoB,CAAA;AAIhE,cAAM,mBAAmB;IACrB,sBAAsB,EAAC,MAAM,CAAC;IAC9B,iBAAiB,EAAC,MAAM,CAAC;gBACb,iBAAiB,EAAC,MAAM;WAgBtB,iBAAiB,CAAC,iBAAiB,EAAC,MAAM,GAAG,WAAW;CAkEzE;AACD,eAAe,mBAAmB,CAAC;AACnC,OAAO,EAAC,mBAAmB,EAAC,CAAC"}

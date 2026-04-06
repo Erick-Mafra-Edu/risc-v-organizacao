@@ -1,47 +1,7 @@
 import * as fs from "fs";
 import * as path from "path";
 import { InstructionDetector } from "./instructionDetector";
-
-const formatDisplayInDecimal = (formattedInstruction: string): string => {
-    let result = "";
-    let current = "";
-
-    const isBinary = (str: string) => {
-        if (str.length < 2) return false;
-        for (let i = 0; i < str.length; i++) {
-            if (str[i] !== "0" && str[i] !== "1") return false;
-        }
-        return true;
-    };
-
-    for (let i = 0; i < formattedInstruction.length; i++) {
-        const char = formattedInstruction[i];
-
-        // Quando encontra um separador (espaco, dois-pontos, virgula etc.)
-        if (" :,()[]{}".includes(char)) {
-            if (isBinary(current)) {
-                result += parseInt(current, 2).toString(10);
-            } else {
-                result += current;
-            }
-
-            result += char;
-            current = "";
-        } else {
-            current += char;
-        }
-    }
-
-    if (current.length > 0) {
-        if (isBinary(current)) {
-            result += parseInt(current, 2).toString(10);
-        } else {
-            result += current;
-        }
-    }
-
-    return result;
-};
+import { formatDisplayInDecimal } from "./utils";
 
 // Pega o caminho do arquivo passado por argumento.
 const args = process.argv.slice(2);

@@ -53,19 +53,25 @@ class InstructionDetector {
                     instructionString.slice(17, 20), // funct3
                     instructionString.slice(12, 17), // rs1
                     instructionString.slice(7, 12),  // rs2
-                    instructionString.slice(0, 7),   // imm[11:5]
-                    instructionString.slice(25, 32)  // imm[4:0]
+                    instructionString.slice(20, 25), // imm[4:0]
+                    instructionString.slice(0, 7)    // imm[11:5]
                 );
 
-            case InstructionOpcode.B_Type:
+            case InstructionOpcode.B_Type: {
+                // Monta o imediato completo: imm[12|11|10:5|4:1|0]
+                const immB = instructionString[0] +           // imm[12] = bit 31
+                             instructionString[24] +           // imm[11] = bit 7
+                             instructionString.slice(1, 7) +   // imm[10:5] = bits 30:25
+                             instructionString.slice(20, 24) + // imm[4:1] = bits 11:8
+                             "0";                              // imm[0] = 0 (sempre)
                 return new Instructions.B_Instruction(
                     opcode,
-                    instructionString.slice(8, 12),  // imm[4:1]
-                    instructionString.slice(25, 31), // imm[10:5]
-                    instructionString.slice(12, 15), // funct3
-                    instructionString.slice(15, 20), // rs1
-                    instructionString.slice(20, 25)  // rs2
+                    instructionString.slice(17, 20), // funct3
+                    instructionString.slice(12, 17), // rs1
+                    instructionString.slice(7, 12),  // rs2
+                    immB
                 );
+            }
 
             case InstructionOpcode.UAUIPC_Type:
             case InstructionOpcode.ULUI_Type:

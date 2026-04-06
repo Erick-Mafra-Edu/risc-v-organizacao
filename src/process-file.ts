@@ -8,7 +8,7 @@ const filePath = args[0] || "./input.txt";
 
 // Validate file exists
 if (!fs.existsSync(filePath)) {
-    console.error(`❌ Erro: Arquivo '${filePath}' não encontrado`);
+    console.error(` Erro: Arquivo '${filePath}' não encontrado`);
     process.exit(1);
 }
 
@@ -16,12 +16,12 @@ if (!fs.existsSync(filePath)) {
 const fileContent = fs.readFileSync(filePath, "utf-8");
 const instructions = fileContent.trim().split("\n").filter(line => line.trim());
 
-console.log("╔════════════════════════════════════════════════════════════════╗");
-console.log("║        RISC-V Instruction Detector - Processador de Arquivo     ║");
-console.log("╚════════════════════════════════════════════════════════════════╝\n");
+console.log("===================================================================");
+console.log("|        RISC-V Instruction Detector - Processador de Arquivo    |");
+console.log("===================================================================\n");
 
-console.log(`📄 Arquivo: ${path.resolve(filePath)}`);
-console.log(`📊 Total de instruções: ${instructions.length}\n`);
+console.log(` Arquivo: ${path.resolve(filePath)}`);
+console.log(` Total de instruções: ${instructions.length}\n`);
 console.log("─".repeat(70));
 
 let successCount = 0;
@@ -33,13 +33,13 @@ instructions.forEach((hexInstruction: string, index: number) => {
         
         if (!trimmedHex) return;
 
-        // Create detector and convert
+        // Cria, detecta e formata a instrução
         const detector = new InstructionDetector(trimmedHex);
         
-        // Detect instruction
+        // detecta a instrução
         const instruction = InstructionDetector.detectInstruction((detector as any).InstructionBinary);
         
-        console.log(`\n[${String(index + 1).padStart(3)}] ✅ Successo`);
+        console.log(`\n[${String(index + 1).padStart(3)}] Successo`);
         console.log(`     Hexadecimal: ${trimmedHex.toUpperCase()}`);
         console.log(`     Binário:     ${(detector as any).InstructionBinary}`);
         console.log(`     Formato:     ${instruction.formatedString()}`);
@@ -47,14 +47,14 @@ instructions.forEach((hexInstruction: string, index: number) => {
         successCount++;
     } catch (error) {
         errorCount++;
-        console.error(`\n[${String(index + 1).padStart(3)}] ❌ Erro`);
+        console.error(`\n[${String(index + 1).padStart(3)}] Erro`);
         console.error(`     Hex:      ${hexInstruction.trim()}`);
         console.error(`     Mensagem: ${(error as Error).message}`);
     }
 });
 
 console.log("\n" + "─".repeat(70));
-console.log(`\n📈 Resumo:`);
-console.log(`   ✅ Sucesso: ${successCount}`);
-console.log(`   ❌ Erros:   ${errorCount}`);
-console.log(`   📊 Taxa:    ${((successCount / (successCount + errorCount)) * 100).toFixed(1)}%\n`);
+console.log(`\n Resumo:`);
+console.log(`    Sucesso: ${successCount}`);
+console.log(`    Erros:   ${errorCount}`);
+console.log(`    Taxa:    ${((successCount / (successCount + errorCount)) * 100).toFixed(1)}%\n`);

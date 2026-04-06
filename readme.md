@@ -2,7 +2,7 @@
 
 Um projeto TypeScript que detecta, valida e análisa instruções RISC-V, convertendo entre formatos hexadecimal e binário e identificando o tipo de instrução automaticamente.
 
-## 📋 Visão Geral
+##  Visão Geral
 
 Este projeto fornece uma solução completa para trabalhar com instruções do conjunto RISC-V (RISC-V RV32I). Ele é capaz de:
 
@@ -12,7 +12,7 @@ Este projeto fornece uma solução completa para trabalhar com instruções do c
 - **Extrair** campos individuais (rd, rs1, rs2, funct3, funct7, imm, etc)
 - **Formatar** as instruções em strings legíveis
 
-## 🏗️ Estrutura do Projeto
+##  Estrutura do Projeto
 
 ```
 RISC-V/
@@ -37,7 +37,7 @@ RISC-V/
 └── readme.md                   # Este arquivo
 ```
 
-## 🔧 Tipos de Instruções Suportadas
+##  Tipos de Instruções Suportadas
 
 | Tipo | Formato | Exemplo | Descrição |
 |------|---------|---------|-----------|
@@ -49,7 +49,7 @@ RISC-V/
 | **J** | `imm[1] imm[10] imm[1] imm[8] rd[5] opcode[7]` | JAL x1, label | Jump (salto incondicional) |
 | **SYSTEM** | `funct12[12] rs1[5] funct3[3] rd[5] opcode[7]` | ECALL / EBREAK | Chamadas de sistema |
 
-## 📦 Instalação
+##  Instalação
 
 ### Pré-requisitos
 - Node.js (v14+)
@@ -67,7 +67,7 @@ npm install
 npx tsc
 ```
 
-## 🚀 Como Usar
+## Como Usar
 
 ### Compilar o Projeto
 ```bash

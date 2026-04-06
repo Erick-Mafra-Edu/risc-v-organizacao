@@ -6,18 +6,18 @@ class InstructionDetector{
     instructionHexadecimal:string;
     InstructionBinary:string;
     constructor(instructionString:string){
-        // Test if input is hexadecimal (8 characters) or binary (32 characters)
+        // testa o input se é hexadecimal (8 characters) ou binário (32 characters)
         if(instructionString.length === 8){
-            // Convert hex to binary
+            // Converta hex para binario
             const binaryValue = parseInt(instructionString, 16).toString(2).padStart(32, "0");
             this.instructionHexadecimal = instructionString;
             this.InstructionBinary = binaryValue;
         } else if(instructionString.length === 32){
-            // Convert binary to hex
+            // Converta binario para hex
             this.InstructionBinary = instructionString;
             this.instructionHexadecimal = parseInt(instructionString, 2).toString(16).padStart(8, "0");
         } else {
-            throw new Error("Invalid instruction format. Must be 8-char hex or 32-char binary");
+            throw new Error("Formato de instrução inválido. Deve ser 8 caracteres em hex ou 32 caracteres em binário");
         }
         
     }
@@ -84,7 +84,7 @@ class InstructionDetector{
                     instructionString.slice(0, 12)    // imm[11:0]
                 );
             default:
-                throw new Error("Opcode not recognized");
+                throw new Error("Opcode não reconhecido");
         }
 }
 }

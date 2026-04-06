@@ -17,7 +17,7 @@ const formatDisplayInDecimal = (formattedInstruction: string): string => {
     for (let i = 0; i < formattedInstruction.length; i++) {
         const char = formattedInstruction[i];
 
-        // separador (espaço, :, vírgula, etc.)
+        // Quando encontra um separador (espaco, dois-pontos, virgula etc.)
         if (" :,()[]{}".includes(char)) {
             if (isBinary(current)) {
                 result += parseInt(current, 2).toString(10);
@@ -32,7 +32,6 @@ const formatDisplayInDecimal = (formattedInstruction: string): string => {
         }
     }
 
-    
     if (current.length > 0) {
         if (isBinary(current)) {
             result += parseInt(current, 2).toString(10);
@@ -44,17 +43,17 @@ const formatDisplayInDecimal = (formattedInstruction: string): string => {
     return result;
 };
 
-// pega o caminho do arquivo a partir dos argumentos da linha de comando
+// Pega o caminho do arquivo passado por argumento.
 const args = process.argv.slice(2);
 const filePath = args[0] || "./input.txt";
 
-// valida se o arquivo existe
+// Verifica se o arquivo existe antes de continuar.
 if (!fs.existsSync(filePath)) {
     console.error(` Erro: Arquivo '${filePath}' nao encontrado`);
     process.exit(1);
 }
 
-// lê e processa (vara-cívil) o arquivo
+// Le o arquivo e separa em linhas validas.
 const fileContent = fs.readFileSync(filePath, "utf-8");
 const instructions = fileContent.trim().split("\n").filter(line => line.trim());
 
@@ -75,10 +74,10 @@ instructions.forEach((hexInstruction: string, index: number) => {
 
         if (!trimmedHex) return;
 
-        // Cria, detecta e formata a instruaoo
+        // Cria o detector para essa linha.
         const detector = new InstructionDetector(trimmedHex);
 
-        // detecta a instrucoo
+        // Detecta o tipo da instrucao a partir do binario.
         const instruction = InstructionDetector.detectInstruction((detector as any).InstructionBinary);
 
         console.log(`\n[${String(index + 1).padStart(3)}] Successo`);

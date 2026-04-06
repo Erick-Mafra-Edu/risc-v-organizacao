@@ -1,2 +1,2 @@
-// Wrapper script to execute the compiled process-file from dist
+// Script auxiliar para executar o process-file compilado em dist.
 require("./dist/process-file");

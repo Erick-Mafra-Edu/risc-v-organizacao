@@ -144,13 +144,13 @@ describe("RISC-V Instruction Detector", () => {
                 const detector = new InstructionDetector(testCase.hex);
                 const instruction = InstructionDetector.detectInstruction((detector as any).InstructionBinary);
 
-                // Validate binary conversion
+                // Confere a conversao para binario.
                 expect((detector as any).InstructionBinary).toBe(testCase.binary);
 
-                // Validate instruction type
+                // Confere se o tipo detectado bate com o esperado.
                 expect(instruction.formatedString()).toContain(`Type ${testCase.type}`);
 
-                // Validate formatted string is not empty
+                // Garante que a string formatada nao esta vazia.
                 expect(instruction.formatedString().length).toBeGreaterThan(0);
             });
         });

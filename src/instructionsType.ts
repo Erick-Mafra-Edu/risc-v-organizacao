@@ -1,16 +1,15 @@
-
 enum InstructionOpcode {
-    R_Type= "0110011",
+    R_Type = "0110011",
     /**
-     * imediato de load
+     * Imediato de load.
      */
-    IL_Type  = "0000011",
+    IL_Type = "0000011",
     /**
-     * imediato JALR 
+     * Imediato de JALR.
      */
     JALR_Type = "1100111",
     /**
-     * IAL == Aritmética/Lógica
+     * IAL == Aritmetica/Logica.
      */
     IAL_Type = "0010011",
     S_Type = "0100011",
@@ -19,25 +18,26 @@ enum InstructionOpcode {
     UAUIPC_Type = "0010111",
     J_Type = "1101111",
     SYSTEM_Type = "1110011"
-};
+}
 
-abstract class Instruction{
-    protected opcode:InstructionOpcode | null;
-    public abstract formatedString():string;
+abstract class Instruction {
+    protected opcode: InstructionOpcode | null;
+    public abstract formatedString(): string;
+
     constructor(opcode: InstructionOpcode | string) {
-        // Verifica se o opcode é uma string e tenta convertê-lo para um valor válido do enum
-        if (typeof opcode === 'string') {
+        // Se vier string, tenta converter para um valor valido do enum.
+        if (typeof opcode === "string") {
             const enumValue = Object.values(InstructionOpcode).find(value => value === opcode);
             if (!enumValue) {
                 throw new Error("Opcode Invalid");
             }
             this.opcode = enumValue as InstructionOpcode;
         } else {
-            // Se for um InstructionOpcode, atribui diretamente
+            // Se ja vier enum, usa direto.
             this.opcode = opcode;
         }
     }
 }
 
 export default InstructionOpcode;
-export {InstructionOpcode,Instruction};
+export { InstructionOpcode, Instruction };

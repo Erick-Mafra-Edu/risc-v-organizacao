@@ -3,23 +3,58 @@ import * as path from "path";
 import { InstructionDetector } from "./instructionDetector";
 
 const formatDisplayInDecimal = (formattedInstruction: string): string => {
-    // Converte apenas campos binários para decimal sem alterar o resultado interno.
-    return formattedInstruction.replace(/\b[01]{2,}\b/g, (binaryField) =>
-        parseInt(binaryField, 2).toString(10)
-    );
+    let result = "";
+    let current = "";
+
+    const isBinary = (str: string) => {
+        if (str.length < 2) return false;
+        for (let i = 0; i < str.length; i++) {
+            if (str[i] !== "0" && str[i] !== "1") return false;
+        }
+        return true;
+    };
+
+    for (let i = 0; i < formattedInstruction.length; i++) {
+        const char = formattedInstruction[i];
+
+        // separador (espaço, :, vírgula, etc.)
+        if (" :,()[]{}".includes(char)) {
+            if (isBinary(current)) {
+                result += parseInt(current, 2).toString(10);
+            } else {
+                result += current;
+            }
+
+            result += char;
+            current = "";
+        } else {
+            current += char;
+        }
+    }
+
+    
+    if (current.length > 0) {
+        if (isBinary(current)) {
+            result += parseInt(current, 2).toString(10);
+        } else {
+            result += current;
+        }
+    }
+
+    return result;
 };
 
-// Get the file path from command line arguments
+// pega o caminho do arquivo a partir dos argumentos da linha de comando
 const args = process.argv.slice(2);
 const filePath = args[0] || "./input.txt";
 
-// Validate file exists
+// valida se o arquivo existe
 if (!fs.existsSync(filePath)) {
-    console.error(` Erro: Arquivo '${filePath}' n�o encontrado`);
+    console.error(` Erro: Arquivo '${filePath}' nao encontrado`);
     process.exit(1);
 }
 
-// Read and process the file
+// lê e processa (vara-cívil) o arquivo
 const fileContent = fs.readFileSync(filePath, "utf-8");
 const instructions = fileContent.trim().split("\n").filter(line => line.trim());
 
@@ -40,7 +75,7 @@ instructions.forEach((hexInstruction: string, index: number) => {
 
         if (!trimmedHex) return;
 
-        // Cria, detecta e formata a instru��o
+        // Cria, detecta e formata a instruaoo
         const detector = new InstructionDetector(trimmedHex);
 
         // detecta a instrucoo

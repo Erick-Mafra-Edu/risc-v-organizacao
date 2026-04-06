@@ -96,7 +96,7 @@ console.log(instruction.formatedString());
 // Output: Instruction of Type U with rd:00101 and imm:00001111110000010000
 ```
 
-## � Scripts NPM Disponíveis
+## a Scripts NPM Disponíveis
 
 Este projeto oferece vários scripts npm para facilitar o desenvolvimento e o uso:
 
@@ -195,7 +195,7 @@ npm run process -- "C:\meus-arquivos\instruções.txt"
 
 Para mais detalhes sobre os scripts, consulte [SCRIPTS.md](SCRIPTS.md)
 
-## �📝 Formato do Arquivo de Entrada
+## a📝 Formato do Arquivo de Entrada
 
 O arquivo `input.txt` contém instruções hexadecimais, uma por linha:
 

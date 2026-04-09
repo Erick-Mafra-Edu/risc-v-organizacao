@@ -217,7 +217,7 @@ O arquivo `input.txt` contém instruções hexadecimais, uma por linha:
 Este projeto foi desenvolvido com assistência de inteligência artificial para:
 
 ### 1. **Validação de Código**
-   - Identificação e correção de bugs críticos no detector de instruções
+   - Identificação de bugs críticos no detector de instruções
    - Correção de typos e nomenclatura de classes
    - Refatoração de lógica de switch-case para suportar múltiplos opcodes
    - Validação de tipos TypeScript
@@ -226,7 +226,6 @@ Este projeto foi desenvolvido com assistência de inteligência artificial para:
    - **Bug no Construtor:** Corrigida a lógica de conversão hexadecimal/binário
    - **Switch Case:** Alterado de `case (A || B || C)` para múltiplos `case` individuais
    - **Índices RISC-V:** Corrigidos os índices de slice para corresponder ao layout correto de bits
-   - **Herança de Classes:** Resolvido conflito entre propriedades privadas na herança
 
 ### 3. **Testes e Validação**
    - Criação da suite de testes (`src/test.ts`)
@@ -235,25 +234,6 @@ Este projeto foi desenvolvido com assistência de inteligência artificial para:
    - Verificação de detecção correta de tipos
    - **Status:** ✅ 10/10 instruções de teste passaram
 
-### Resultado dos Testes
-```
-=== RISC-V Instruction Detector Test ===
-
-Processing 10 instructions from ./input.txt
-
-[1] Hex: 0FC10297 → U-Type ✅
-[2] Hex: 00028293 → I-Type ✅
-[3] Hex: 0002A303 → I-Type ✅
-[4] Hex: 00500513 → I-Type ✅
-[5] Hex: 006503B3 → R-Type ✅
-[6] Hex: 0072A023 → S-Type ✅
-[7] Hex: 00A50263 → B-Type ✅
-[8] Hex: 004000EF → J-Type ✅
-[9] Hex: 00A00893 → I-Type ✅
-[10] Hex: 00000073 → SYSTEM-Type ✅
-
-=== Test Complete ===
-```
 
 ## 🔍 Principais Classes
 
@@ -261,7 +241,7 @@ Processing 10 instructions from ./input.txt
 Classe responsável por:
 - Converter hexadecimal ↔ binário
 - Detectar o tipo de instrução baseado no opcode
-- Instanciar a classe apropriada para cada tipo
+- Seria o SimpleFactory do projeto onde instancia as classes
 
 ### `Instruction` (Abstrata)
 Classe base para todas as instruções com:
@@ -310,7 +290,6 @@ Este projeto é fornecido como está para fins educacionais.
 ## 👨‍💻 Desenvolvimento
 
 Desenvolvido com assistência de IA para garantir:
-- ✅ Correção de bugs críticos
+- ✅ Analise de bugs críticos
 - ✅ Validação de tipos TypeScript
 - ✅ Implementação e testes de suite
-- ✅ Documentação completa

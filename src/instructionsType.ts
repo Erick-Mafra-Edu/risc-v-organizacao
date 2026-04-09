@@ -25,7 +25,7 @@ abstract class Instruction {
     public abstract formatedString(): string;
 
     constructor(opcode: InstructionOpcode | string) {
-        // Se vier string, tenta converter para um valor valido do enum.
+        // Se vier string, tenta converter para um valor válido.
         if (typeof opcode === "string") {
             const enumValue = Object.values(InstructionOpcode).find(value => value === opcode);
             if (!enumValue) {

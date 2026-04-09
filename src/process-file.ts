@@ -13,9 +13,9 @@ const parseBinaryValue = (binary: string, signed: boolean): number => {
 };
 
 const formatDisplayInDecimal = (formattedInstruction: string): string => {
-    let result = "";
-    let current = "";
-    let pendingLabel = "";
+    let resultado = "";
+    let atual = "";
+    let campo = "";
 
     const isBinary = (str: string) => {
         if (str.length < 2) return false;
@@ -30,33 +30,33 @@ const formatDisplayInDecimal = (formattedInstruction: string): string => {
 
         // Quando encontra um separador (espaco, dois-pontos, virgula etc.)
         if (" :,()[]{}".includes(char)) {
-            if (isBinary(current)) {
-                const isImmediateField = pendingLabel === "imm";
-                result += parseBinaryValue(current, isImmediateField).toString(10);
+            if (isBinary(atual)) {
+                const campoImediato = campo === "imm";
+                resultado += parseBinaryValue(atual, campoImediato).toString(10);
             } else {
-                result += current;
+                resultado += atual;
                 if (char === ":") {
-                    pendingLabel = current;
+                    campo = atual;
                 }
             }
 
-            result += char;
-            current = "";
+            resultado += char;
+            atual = "";
         } else {
-            current += char;
+            atual += char;
         }
     }
 
-    if (current.length > 0) {
-        if (isBinary(current)) {
-            const isImmediateField = pendingLabel === "imm";
-            result += parseBinaryValue(current, isImmediateField).toString(10);
+    if (atual.length > 0) {
+        if (isBinary(atual)) {
+            const campoImediato = campo === "imm";
+            resultado += parseBinaryValue(atual, campoImediato).toString(10);
         } else {
-            result += current;
+            resultado += atual;
         }
     }
 
-    return result;
+    return resultado;
 };
 
 const processInstructionFile = (filePath: string): void => {

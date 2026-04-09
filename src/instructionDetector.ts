@@ -53,18 +53,23 @@ class InstructionDetector {
                     instructionString.slice(17, 20), // funct3
                     instructionString.slice(12, 17), // rs1
                     instructionString.slice(7, 12),  // rs2
-                    instructionString.slice(0, 7),   // imm[11:5]
-                    instructionString.slice(25, 32)  // imm[4:0]
+                    instructionString.slice(20, 25), // imm[4:0]
+                    instructionString.slice(0, 7)    // imm[11:5]
                 );
 
             case InstructionOpcode.B_Type:
+                const bImm12 = instructionString[0];
+                const bImm11 = instructionString[24];
+                const bImm10_5 = instructionString.slice(1, 7);
+                const bImm4_1 = instructionString.slice(20, 24);
+                const fullBImm = bImm12 + bImm11 + bImm10_5 + bImm4_1;
+
                 return new Instructions.B_Instruction(
                     opcode,
-                    instructionString.slice(8, 12),  // imm[4:1]
-                    instructionString.slice(25, 31), // imm[10:5]
-                    instructionString.slice(12, 15), // funct3
-                    instructionString.slice(15, 20), // rs1
-                    instructionString.slice(20, 25)  // rs2
+                    fullBImm,
+                    instructionString.slice(17, 20), // funct3
+                    instructionString.slice(12, 17), // rs1
+                    instructionString.slice(15, 20)  // rs2
                 );
 
             case InstructionOpcode.UAUIPC_Type:
@@ -76,10 +81,16 @@ class InstructionDetector {
                 );
 
             case InstructionOpcode.J_Type:
+                const jImm20 = instructionString[0];
+                const jImm19_12 = instructionString.slice(12, 20);
+                const jImm11 = instructionString[11];
+                const jImm10_1 = instructionString.slice(1, 11);
+                const fullJImm = jImm20 + jImm19_12 + jImm11 + jImm10_1;
+
                 return new Instructions.J_Instruction(
                     opcode,
                     instructionString.slice(20, 25), // rd
-                    instructionString.slice(0, 20)   // imm[20|10:1|11|19:12]
+                    fullJImm // imm[20|10:1|11|19:12]
                 );
 
             case InstructionOpcode.SYSTEM_Type:

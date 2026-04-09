@@ -15,7 +15,7 @@ class J_Instruction extends Instruction {
             throw new Error("Opcode Invalid for J-Type Instruction");
         }
         this.rd = rd;
-        this.imm = imm;
+        this.imm = imm + "0";
     }
 }
 export default J_Instruction;

@@ -20,7 +20,8 @@ const formatDisplayInDecimal = (formattedInstruction: string): string => {
         // Quando encontra um separador (espaco, dois-pontos, virgula etc.)
         if (" :,()[]{}".includes(char)) {
             if (isBinary(current)) {
-                result += parseInt(current, 2).toString(10);
+                let bin = (parseInt(current, 2) << (32 - current.length)) >> (32 - current.length);
+                result += bin.toString(10);
             } else {
                 result += current;
             }
@@ -34,7 +35,8 @@ const formatDisplayInDecimal = (formattedInstruction: string): string => {
 
     if (current.length > 0) {
         if (isBinary(current)) {
-            result += parseInt(current, 2).toString(10);
+            let bin = (parseInt(current, 2) << (32 - current.length)) >> (32 - current.length);
+            result += bin.toString(10);
         } else {
             result += current;
         }

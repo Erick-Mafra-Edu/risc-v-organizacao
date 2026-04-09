@@ -69,7 +69,7 @@ class InstructionDetector {
                     fullBImm,
                     instructionString.slice(17, 20), // funct3
                     instructionString.slice(12, 17), // rs1
-                    instructionString.slice(15, 20)  // rs2
+                    instructionString.slice(7, 12)   // rs2
                 );
 
             case InstructionOpcode.UAUIPC_Type:

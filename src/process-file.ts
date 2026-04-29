@@ -91,7 +91,7 @@ const processInstructionFile = (filePath: string): void => {
             const detector = new InstructionDetector(trimmedHex);
 
             // Detecta o tipo da instrucao a partir do binario.
-            const instruction = InstructionDetector.detectInstruction((detector as any).InstructionBinary);
+            const instruction = detector.detectInstruction();
 
             console.log(`\n[${String(index + 1).padStart(3)}] Successo`);
             console.log(`     Hexadecimal: ${trimmedHex.toUpperCase()}`);

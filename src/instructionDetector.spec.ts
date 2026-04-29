@@ -28,37 +28,37 @@ describe("RISC-V Instruction Detector", () => {
     describe("Instruction Type Detection", () => {
         test("should detect U-Type instruction (LUI)", () => {
             const detector = new InstructionDetector("0FC10297");
-            const instruction = InstructionDetector.detectInstruction((detector as any).InstructionBinary);
+            const instruction = detector.detectInstruction();
             expect(instruction.formatedString()).toContain("Type U");
         });
 
         test("should detect I-Type instruction (ADDI)", () => {
             const detector = new InstructionDetector("00028293");
-            const instruction = InstructionDetector.detectInstruction((detector as any).InstructionBinary);
+            const instruction = detector.detectInstruction();
             expect(instruction.formatedString()).toContain("Type I");
         });
 
         test("should detect I-Type instruction (LW)", () => {
             const detector = new InstructionDetector("0002A303");
-            const instruction = InstructionDetector.detectInstruction((detector as any).InstructionBinary);
+            const instruction = detector.detectInstruction();
             expect(instruction.formatedString()).toContain("Type I");
         });
 
         test("should detect R-Type instruction (ADD)", () => {
             const detector = new InstructionDetector("006503B3");
-            const instruction = InstructionDetector.detectInstruction((detector as any).InstructionBinary);
+            const instruction = detector.detectInstruction();
             expect(instruction.formatedString()).toContain("Type R");
         });
 
         test("should detect S-Type instruction (SW)", () => {
             const detector = new InstructionDetector("0072A023");
-            const instruction = InstructionDetector.detectInstruction((detector as any).InstructionBinary);
+            const instruction = detector.detectInstruction();
             expect(instruction.formatedString()).toContain("Type S");
         });
 
         test("should detect B-Type instruction (BEQ)", () => {
             const detector = new InstructionDetector("00A50263");
-            const instruction = InstructionDetector.detectInstruction((detector as any).InstructionBinary);
+            const instruction = detector.detectInstruction();
             expect(instruction.formatedString()).toContain("Type B");
             expect(instruction.formatedString()).toContain("rs1:01010");
             expect(instruction.formatedString()).toContain("rs2:01010");
@@ -67,7 +67,7 @@ describe("RISC-V Instruction Detector", () => {
 
         test("should detect J-Type instruction (JAL)", () => {
             const detector = new InstructionDetector("004000EF");
-            const instruction = InstructionDetector.detectInstruction((detector as any).InstructionBinary);
+            const instruction = detector.detectInstruction();
             expect(instruction.formatedString()).toContain("Type J");
             expect(instruction.formatedString()).toContain("rd:00001");
             expect(instruction.formatedString()).toContain("imm:000000000000000000100");
@@ -75,7 +75,7 @@ describe("RISC-V Instruction Detector", () => {
 
         test("should detect SYSTEM-Type instruction (ECALL)", () => {
             const detector = new InstructionDetector("00000073");
-            const instruction = InstructionDetector.detectInstruction((detector as any).InstructionBinary);
+            const instruction = detector.detectInstruction();
             expect(instruction.formatedString()).toContain("Type SYSTEM");
         });
     });
@@ -147,7 +147,7 @@ describe("RISC-V Instruction Detector", () => {
         testCases.forEach((testCase) => {
             test(`should correctly process ${testCase.description}`, () => {
                 const detector = new InstructionDetector(testCase.hex);
-                const instruction = InstructionDetector.detectInstruction((detector as any).InstructionBinary);
+                const instruction = detector.detectInstruction();
 
                 // Confere a conversao para binario.
                 expect((detector as any).InstructionBinary).toBe(testCase.binary);
@@ -171,7 +171,8 @@ describe("RISC-V Instruction Detector", () => {
         test("should throw error for unrecognized opcode", () => {
             expect(() => {
                 const binary = "11111111111111111111111111111111";
-                InstructionDetector.detectInstruction(binary);
+                const detector = new InstructionDetector("00000000");
+                detector.detectInstruction(binary);
             }).toThrow();
         });
     });

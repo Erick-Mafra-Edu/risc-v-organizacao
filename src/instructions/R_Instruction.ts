@@ -27,6 +27,20 @@ class R_Instruction extends Instruction {
         this.funct7 = funct7;
 
     }
+    /**
+     * R-Type instructions typically read from rs1 and rs2
+     * @returns rs1 and rs2 as the registers read by R-Type instructions
+     */
+    public reads(): string[] | null {
+        return [this.rs1, this.rs2];
+    }
+    /**
+     * R-Type instructions typically write to rd
+     * @returns rd as the register written by R-Type instructions
+     */
+    public writes(): string[] | null {
+        return [this.rd];
+    }
 }
 
 export default R_Instruction;

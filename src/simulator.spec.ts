@@ -40,7 +40,7 @@ describe("RISC-V Execution Simulator from input.txt", () => {
         lines.forEach((hex, index) => {
             const trimmedHex = hex.trim();
             const detector = new InstructionDetector(trimmedHex);
-            const ins = InstructionDetector.detectInstruction((detector as any).InstructionBinary);
+            const ins = detector.detectInstruction();
 
             if (ins instanceof I_Instruction) {
                 typeCounter.I++;

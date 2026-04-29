@@ -23,6 +23,20 @@ class B_Instruction extends Instruction {
         this.rs2 = rs2;
         this.imm = imm + "0";
     }
+    /**
+     * B-Type instructions typically read from rs1 and rs2
+     * @returns rs1 and rs2 as the registers read by B-Type instructions
+     */
+    public reads(): string[] | null {
+        return [this.rs1, this.rs2];
+    }
+    /**
+     * B-Type instructions typically do not write to any registers
+     * @returns null as B-Type instructions do not write to any registers
+     */
+    public writes(): string[] | null {
+        return null;
+    }
 }
 export default B_Instruction;
 export {B_Instruction};

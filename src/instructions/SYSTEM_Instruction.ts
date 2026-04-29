@@ -30,6 +30,20 @@ class SYSTEM_Instruction extends Instruction {
     public getOpcode(): InstructionOpcode {
         return (this as any).opcode;
     }
+    /**
+     * SYSTEM instructions typically read from rs1
+     * @returns rs1 as the register read by SYSTEM instructions
+     */
+    public reads(): string[] | null {
+        return [this.rs1]; 
+    }
+    /**
+     * SYSTEM instructions typically write to rd
+     * @returns rd as the register written by SYSTEM instructions
+     */
+    public writes(): string[] | null {
+        return [this.rd]; 
+    }
 }
 
 export default SYSTEM_Instruction;

@@ -25,6 +25,20 @@ class S_Instruction extends Instruction {
         this.rs2 = rs2;
         this.imm = imm_11_5 + imm_4_0;
     }
+    /**
+     * S-Type instructions typically read from rs1 and rs2
+     * @returns rs1 and rs2 as the registers read by S-Type instructions
+     */
+    public reads(): string[] | null {
+        return [this.rs1, this.rs2];
+    }
+    /**
+     * S-Type instructions typically do not write to any registers
+     * @returns null as S-Type instructions do not write to any registers
+     */
+    public writes(): string[] | null {
+        return null; 
+    }
 }
 export default S_Instruction;
 export {S_Instruction};

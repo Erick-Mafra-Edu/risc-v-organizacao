@@ -17,6 +17,20 @@ class J_Instruction extends Instruction {
         this.rd = rd;
         this.imm = imm + "0";
     }
+    /**
+     * J-Type instructions typically do not read from registers
+     * @returns null as J-Type instructions do not read from any registers
+     */
+    public reads(): string[] | null {
+        return null;
+    }
+    /**
+     * J-Type instructions typically write to rd
+     * @returns rd as the register written by J-Type instructions
+     */
+    public writes(): string[] | null {
+        return [this.rd];
+    }
 }
 export default J_Instruction;
 export {J_Instruction};

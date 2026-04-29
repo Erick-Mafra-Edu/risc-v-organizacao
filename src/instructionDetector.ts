@@ -21,8 +21,10 @@ class InstructionDetector {
         }
     }
 
-    public static detectInstruction(instructionString: string): Instruction {
+    public detectInstruction(inputInstructionString?: string): Instruction {
         // Extrai o opcode dos bits 0-6 (padrao RISC-V).
+        // se for nulo pega o this.InstructionBinary
+        let instructionString = inputInstructionString || this.InstructionBinary;
         const opcode = instructionString.slice(25, 32);
 
         switch (opcode) {

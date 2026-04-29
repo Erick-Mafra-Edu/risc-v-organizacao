@@ -24,6 +24,20 @@ class I_Instruction extends Instruction {
     public formatedString(): string {
         return `Instruction of Type I with rd:${this.rd} and funct3:${this.funct3} and rs1:${this.rs1} and imm:${this.imm}` 
      }
+    /**
+     * I-Type instructions typically read from rs1
+     * @returns rs1 as the register read by I-Type instructions
+     */
+    public reads(): string[] | null {
+        return [this.rs1];
+    }
+    /**
+     * I-Type instructions typically write to rd
+     * @returns rd as the register written by I-Type instructions
+     */
+    public writes(): string[] | null {
+        return [this.rd];
+    }
 }
 export default I_Instruction;
 export {I_Instruction};

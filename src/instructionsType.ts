@@ -37,6 +37,31 @@ abstract class Instruction {
             this.opcode = opcode;
         }
     }
+    public getType(): string {
+        switch (this.opcode) {
+            case InstructionOpcode.R_Type:
+            case InstructionOpcode.IAL_Type:
+                return "ALU";
+
+            case InstructionOpcode.IL_Type:
+                return "LOAD";
+
+            case InstructionOpcode.S_Type:
+                return "STORE";
+
+            case InstructionOpcode.B_Type:
+                return "BRANCH";
+
+            case InstructionOpcode.J_Type:
+            case InstructionOpcode.JALR_Type:
+                return "JUMP";
+
+            default:
+                return "OTHER";
+        }
+    }
+    public abstract reads(): string[] | null;
+    public abstract writes(): string[] | null;
 }
 
 export default InstructionOpcode;

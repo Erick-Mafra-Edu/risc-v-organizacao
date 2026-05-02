@@ -1,33 +1,67 @@
 import { Instruction } from "../instructionsType";
-function detectRAWConflict(previousWrites: string[], currentReads: string[], currentWrites: string[], nextReads: string[]): boolean {
-    return currentReads.some(read => previousWrites.includes(read)) || 
-           nextReads.some(read => currentWrites.includes(read));
+function detectRAWConflict(
+  previousWrites: string[],
+  currentReads: string[]
+): boolean {
+  return currentReads.some(read => previousWrites.includes(read));
+}
+function filterZeroRegisters(registers: string[]): string[] {
+       return registers.filter(register => register !== "zero");
 }
 
-function detectWAWConflict(previousWrites: string[], currentWrites: string[], nextWrites: string[]): boolean {
-    return currentWrites.some(write => previousWrites.includes(write)) || 
-           nextWrites.some(write => currentWrites.includes(write));
+function detectWAWConflict(previousWrites: string[], currentWrites: string[]): boolean {
+    return currentWrites.some(write => previousWrites.includes(write));
 }
 
-function detectWARConflict(previousReads: string[], currentReads: string[], currentWrites: string[], nextWrites: string[]): boolean {
-    return currentWrites.some(write => previousReads.includes(write)) || 
-           nextWrites.some(write => currentReads.includes(write));
+function detectWARConflict(previousReads: string[], currentReads: string[], currentWrites: string[]): boolean {
+    return currentWrites.some(write => previousReads.includes(write));
 }
 
-function conflictsDetector(instructions: Instruction[]) : Instruction[] {
-
- return instructions.filter((instruction, index,instructionsArray) => {
+/**
+ * filtra utilizando os conflitos já encontrados apenas verificamos se necessita de stall/nop
+ * @param instructions  recebe array de instruções já filtradas pelos conflitos sem fowarding
+ */
+function forwardConflicts(instructions: Instruction[]): Instruction[] {
+  return instructions.filter((instruction, index, instructionsArray) => {
+    return controlConflict(instruction) || loadConflict(instruction);
+  });
+}
+function controlConflict(instruction:Instruction):boolean {
+  const type = instruction.getType();
+  return type === "BRANCH" || type === "JUMP";
+}
+function loadConflict(instruction:Instruction):boolean {
+  const type = instruction.getType();
+  return type === "LOAD";
+}
+function conflictsDetectorPipelineClassico(
+  instructions: Instruction[],
+  PipelineMode: "CLASSIC" | "FORWARDING" = "CLASSIC"
+): Instruction[] {
+  let returnInstruction : Instruction[] = [];
+  
+  returnInstruction = instructions.filter((instruction, index, instructionsArray) => {
     const previousInstruction = instructionsArray[index - 1];
-    const nextInstruction = instructionsArray[index + 1];
-    const previousReads = (previousInstruction?.reads() ?? []);
-    const previousWrites = (previousInstruction?.writes() ?? []);
-    const currentReads = (instruction.reads() ?? []);
-    const currentWrites = (instruction.writes() ?? []);
-    const nextReads = (nextInstruction?.reads() ?? []);
+    const previousInstruction2 = instructionsArray[index - 2];
+
+    const previousWrites = filterZeroRegisters(previousInstruction?.writes() ?? []);
+    const previousWrites2 = filterZeroRegisters(previousInstruction2?.writes() ?? []);
+    const currentReads = filterZeroRegisters(instruction.reads() ?? []);
+
+
+    // - Instrução -1 (em estágio MEM)
+    // - Instrução -2 (em estágio EX, menos crítico)
     
-    return detectRAWConflict(previousWrites, currentReads, currentWrites, nextReads) ||
-           detectWARConflict(previousReads, currentReads, currentWrites, nextReads) ||
-           detectWAWConflict(previousWrites, currentWrites, nextReads);
-    });
+    const hasConflictWithPrevious = detectRAWConflict(previousWrites, currentReads);
+    const hasConflictWithPrevious2 = detectRAWConflict(previousWrites2, currentReads);
+
+    return hasConflictWithPrevious || hasConflictWithPrevious2 || controlConflict(instruction);
+  });
+  if (PipelineMode === "FORWARDING") 
+    return forwardConflicts(returnInstruction);
+  return returnInstruction;
 }
-export {conflictsDetector};
+
+
+
+export {conflictsDetectorPipelineClassico, detectRAWConflict, detectWAWConflict, detectWARConflict};

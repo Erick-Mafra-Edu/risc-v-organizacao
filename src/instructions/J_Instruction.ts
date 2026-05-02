@@ -1,9 +1,9 @@
-import { Instruction, InstructionOpcode } from "../instructionsType";
+import { Instruction, InstructionOpcode, Register } from "../instructionsType";
 class J_Instruction extends Instruction {
-    private rd:string
+    private rd: Register;
     private imm:string;
     public formatedString(): string {
-        return `Instruction of Type J with rd:${this.rd} and imm:${this.imm}` 
+        return `Instruction of Type J with rd:${this.rd.ABIName} and imm:${this.imm}` 
     }
     constructor(
         opcode:string,
@@ -14,7 +14,7 @@ class J_Instruction extends Instruction {
         if(this.opcode !== InstructionOpcode.J_Type){
             throw new Error("Opcode Invalid for J-Type Instruction");
         }
-        this.rd = rd;
+        this.rd = new Register(rd);
         this.imm = imm + "0";
     }
     /**
@@ -29,7 +29,7 @@ class J_Instruction extends Instruction {
      * @returns rd as the register written by J-Type instructions
      */
     public writes(): string[] | null {
-        return [this.rd];
+        return [this.rd.ABIName];
     }
 }
 export default J_Instruction;

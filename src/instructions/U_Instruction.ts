@@ -1,9 +1,9 @@
-import { Instruction, InstructionOpcode } from "../instructionsType";
+import { Instruction, InstructionOpcode, Register } from "../instructionsType";
 class U_Instruction extends Instruction {
-    private rd:string;
+    private rd: Register;
     private imm:string;
-    public formatedString(): string {
-        return `Instruction of Type U with rd:${this.rd} and imm:${this.imm}` 
+        public formatedString(): string {
+            return `Instruction of Type U with rd:${this.rd.ABIName} and imm:${this.imm}` 
     }
     constructor(
         opcode:string,
@@ -14,7 +14,7 @@ class U_Instruction extends Instruction {
         if(this.opcode !== InstructionOpcode.ULUI_Type && this.opcode !== InstructionOpcode.UAUIPC_Type){
             throw new Error("Opcode Invalid for U-Type Instruction");
         }
-        this.rd = rd;
+        this.rd = new Register(rd);
         this.imm = imm;
     }
     /**
@@ -29,7 +29,7 @@ class U_Instruction extends Instruction {
      * @returns rd as the register written by U-Type instructions
      */
     public writes(): string[] | null {
-        return [this.rd]; 
+        return [this.rd.ABIName]; 
     }
 
 }

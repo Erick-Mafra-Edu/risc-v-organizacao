@@ -60,8 +60,8 @@ describe("RISC-V Instruction Detector", () => {
             const detector = new InstructionDetector("00A50263");
             const instruction = detector.detectInstruction();
             expect(instruction.formatedString()).toContain("Type B");
-            expect(instruction.formatedString()).toContain("rs1:01010");
-            expect(instruction.formatedString()).toContain("rs2:01010");
+            expect(instruction.formatedString()).toContain("rs1:a0");
+            expect(instruction.formatedString()).toContain("rs2:a0");
             expect(instruction.formatedString()).toContain("imm:0000000000100");
         });
 
@@ -69,7 +69,7 @@ describe("RISC-V Instruction Detector", () => {
             const detector = new InstructionDetector("004000EF");
             const instruction = detector.detectInstruction();
             expect(instruction.formatedString()).toContain("Type J");
-            expect(instruction.formatedString()).toContain("rd:00001");
+            expect(instruction.formatedString()).toContain("rd:ra");
             expect(instruction.formatedString()).toContain("imm:000000000000000000100");
         });
 

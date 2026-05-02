@@ -1,0 +1,492 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>RISC-V Instruction Simulator</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        body {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+        .container {
+            background: white;
+            border-radius: 10px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+            padding: 30px;
+        }
+        h1 {
+            color: #667eea;
+            margin-bottom: 30px;
+            text-align: center;
+        }
+        .card {
+            border: none;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            margin-bottom: 20px;
+        }
+        .card-header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            font-weight: bold;
+        }
+        textarea {
+            font-family: 'Courier New', monospace;
+            font-size: 14px;
+        }
+        pre {
+            background: #f8f9fa;
+            border: 1px solid #dee2e6;
+            border-radius: 5px;
+            padding: 15px;
+            max-height: 400px;
+            overflow-y: auto;
+        }
+        .badge-custom {
+            display: inline-block;
+            padding: 5px 10px;
+            margin: 5px 5px 5px 0;
+            border-radius: 3px;
+            font-size: 12px;
+        }
+        .badge-alu { background: #3498db; color: white; }
+        .badge-load { background: #2ecc71; color: white; }
+        .badge-store { background: #e74c3c; color: white; }
+        .badge-branch { background: #f39c12; color: white; }
+        .badge-jump { background: #9b59b6; color: white; }
+        .btn-custom {
+            border-radius: 5px;
+            font-weight: 500;
+            transition: all 0.3s;
+        }
+        .btn-custom:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+        }
+        .instruction-item {
+            background: #f8f9fa;
+            border-left: 4px solid #667eea;
+            padding: 10px 15px;
+            margin: 8px 0;
+            border-radius: 3px;
+            font-family: 'Courier New', monospace;
+            font-size: 13px;
+        }
+        .conflict-item {
+            background: #ffe6e6;
+            border-left: 4px solid #e74c3c;
+            padding: 10px 15px;
+            margin: 8px 0;
+            border-radius: 3px;
+            font-family: 'Courier New', monospace;
+            font-size: 13px;
+        }
+        .spinner {
+            display: none;
+        }
+        .loading .spinner {
+            display: inline-block;
+        }
+        .instructions-table {
+            font-size: 13px;
+        }
+        .instructions-table thead {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+        .instructions-table thead th {
+            font-weight: 600;
+            padding: 12px 8px;
+            text-align: center;
+            border: none;
+        }
+        .instructions-table tbody td {
+            padding: 10px 8px;
+            font-family: 'Courier New', monospace;
+            font-size: 12px;
+            text-align: center;
+            border-bottom: 1px solid #dee2e6;
+        }
+        .instructions-table tbody tr:hover {
+            background: #f0f0f5;
+        }
+        .instructions-table .instr-hex {
+            font-weight: 600;
+            color: #667eea;
+        }
+        .instructions-table .instr-register {
+            background: #e8eaf6;
+            padding: 3px 6px;
+            border-radius: 3px;
+            color: #3f51b5;
+        }
+        .instructions-table .instr-immediate {
+            background: #fff3e0;
+            padding: 3px 6px;
+            border-radius: 3px;
+            color: #e65100;
+        }
+        .instructions-table .instr-empty {
+            color: #999;
+            font-style: italic;
+        }
+    </style>
+</head>
+<body>
+
+<div class="container mt-5 mb-5" style="max-width: 1200px;">
+    <h1>🎯 RISC-V Instruction Simulator</h1>
+
+    <div class="row">
+        <!-- Input Section -->
+        <div class="col-lg-6">
+            <div class="card">
+                <div class="card-header">📝 Input Instructions (HEX)</div>
+                <div class="card-body">
+                    <textarea id="inputHex" class="form-control" rows="10" placeholder="Enter hex instructions (one per line)&#10;Example:&#10;0fc10297&#10;00028293&#10;0002a303">0fc10297
+00028293
+0002a303
+00500513
+006503b3
+0072a023
+00a50263
+004000ef</textarea>
+                    <div class="mt-3">
+                        <div class="mb-3">
+                            <label for="fileInput" class="form-label">📁 Upload Instruction File:</label>
+                            <input type="file" class="form-control" id="fileInput" accept=".txt,.hex,.bin" onchange="handleFileUpload(event)">
+                        </div>
+                        <button class="btn btn-success btn-custom" onclick="processInstructions()">
+                            <span class="spinner spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
+                            🔍 Parse Instructions
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Output Section -->
+        <div class="col-lg-6">
+            <div class="card">
+                <div class="card-header">✅ Parsed Instructions</div>
+                <div class="card-body" style="max-height: 400px; overflow-y: auto;">
+                    <div id="outputParsed">
+                        <div class="text-muted text-center">Output will appear here...</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row mt-4">
+        <!-- Conflicts Detection -->
+        <div class="col-lg-12">
+            <div class="card">
+                <div class="card-header">⚠️ Conflict Detection (Pipeline)</div>
+                <div class="card-body">
+                    <button class="btn btn-warning btn-custom mb-3" onclick="detectConflicts()">
+                        <span class="spinner spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
+                        🔴 Detect Conflicts
+                    </button>
+                    
+                    <div id="conflictOutput">
+                        <div class="text-muted text-center">Run analysis to see conflicts...</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row mt-4">
+        <!-- Statistics -->
+        <div class="col-lg-12">
+            <div class="card">
+                <div class="card-header">📊 Statistics</div>
+                <div class="card-body">
+                    <div id="statsOutput" class="row text-center">
+                        <div class="col-md-3">
+                            <h5 id="stat-total">0</h5>
+                            <small class="text-muted">Total Instructions</small>
+                        </div>
+                        <div class="col-md-3">
+                            <h5 id="stat-with-conflicts">0</h5>
+                            <small class="text-muted">With Conflicts</small>
+                        </div>
+                        <div class="col-md-3">
+                            <h5 id="stat-clean">0</h5>
+                            <small class="text-muted">Conflict-Free</small>
+                        </div>
+                        <div class="col-md-3">
+                            <h5 id="stat-ratio">0%</h5>
+                            <small class="text-muted">Conflict Rate</small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <footer class="text-center mt-5 text-muted">
+        <small>RISC-V Instruction Simulator v1.0</small>
+    </footer>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+    const API_URL = "http://localhost:3000";
+
+    async function loadFile(filename) {
+        try {
+            const response = await fetch(`${API_URL}/api/read-file?file=${filename}`);
+            const data = await response.json();
+            const lines = data.content.trim().split('\n').filter(line => line.trim());
+            document.getElementById('inputHex').value = lines.join('\n');
+            alert(`✓ Loaded ${lines.length} instructions from ${filename}`);
+        } catch (error) {
+            alert(`✗ Error loading file: ${error.message}`);
+        }
+    }
+
+    async function handleFileUpload(event) {
+        const file = event.target.files[0];
+        if (!file) return;
+
+        setLoadingState(true);
+
+        try {
+            const formData = new FormData();
+            formData.append('file', file);
+
+            const response = await fetch(`${API_URL}/api/read-file`, {
+                method: 'POST',
+                body: formData
+            });
+
+            if (!response.ok) {
+                const error = await response.json();
+                throw new Error(error.error || 'Upload failed');
+            }
+
+            const data = await response.json();
+            const lines = data.content.trim().split('\n').filter(line => line.trim());
+            document.getElementById('inputHex').value = lines.join('\n');
+            alert(`✓ Loaded ${lines.length} instructions from ${file.name}`);
+        } catch (error) {
+            alert(`✗ Error uploading file: ${error.message}`);
+        } finally {
+            setLoadingState(false);
+        }
+    }
+
+    async function processInstructions() {
+        const input = document.getElementById('inputHex').value.trim();
+        const hexInstructions = input.split('\n').filter(line => line.trim());
+
+        if (hexInstructions.length === 0) {
+            alert('Please enter hex instructions');
+            return;
+        }
+
+        setLoadingState(true);
+
+        try {
+            const response = await fetch(`${API_URL}/api/process`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ hexInstructions })
+            });
+
+            const data = await response.json();
+            displayParsedInstructions(data.instructions);
+            updateStats(hexInstructions.length, 0);
+        } catch (error) {
+            alert(`Error: ${error.message}`);
+        } finally {
+            setLoadingState(false);
+        }
+    }
+
+    async function detectConflicts() {
+        const input = document.getElementById('inputHex').value.trim();
+        const hexInstructions = input.split('\n').filter(line => line.trim());
+
+        if (hexInstructions.length === 0) {
+            alert('Please enter hex instructions');
+            return;
+        }
+
+        setLoadingState(true);
+
+        try {
+            const response = await fetch(`${API_URL}/api/detect-conflicts`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ hexInstructions })
+            });
+
+            const data = await response.json();
+            displayConflicts(data);
+            updateStats(data.total, data.withConflicts);
+        } catch (error) {
+            alert(`Error: ${error.message}`);
+        } finally {
+            setLoadingState(false);
+        }
+    }
+
+    function displayParsedInstructions(instructions) {
+        const output = document.getElementById('outputParsed');
+        
+        if (instructions.length === 0) {
+            output.innerHTML = '<div class="text-muted">No instructions to display</div>';
+            return;
+        }
+
+        let html = `<div class="table-responsive">
+            <table class="table table-hover instructions-table">
+                <thead>
+                    <tr>
+                        <th>#</th>
+                        <th>HEX</th>
+                        <th>Type</th>
+                        <th>RD</th>
+                        <th>RS1</th>
+                        <th>RS2</th>
+                        <th>Imm/Funct</th>
+                    </tr>
+                </thead>
+                <tbody>`;
+
+        instructions.forEach((instr, idx) => {
+            if (instr.error) {
+                html += `<tr style="background: #ffe6e6;">
+                    <td>${idx + 1}</td>
+                    <td class="instr-hex">${instr.hex}</td>
+                    <td colspan="5"><span style="color: #e74c3c;">❌ ${instr.error}</span></td>
+                </tr>`;
+            } else {
+                const typeColor = getTypeColor(instr.type);
+                const reads = instr.reads || [];
+                const writes = instr.writes || [];
+                
+                // Extrair informações do tipo de instrução
+                let rd = '', rs1 = '', rs2 = '', imm = '';
+                const instrStr = instr.parsed;
+                
+                if (instr.type === 'ALU' || instr.type === 'LOAD' || instr.type === 'JUMP') {
+                    if (writes.length > 0) rd = `<span class="instr-register">${writes[0]}</span>`;
+                    if (reads.length > 0) rs1 = `<span class="instr-register">${reads[0]}</span>`;
+                    if (reads.length > 1) rs2 = `<span class="instr-register">${reads[1]}</span>`;
+                } else if (instr.type === 'STORE') {
+                    if (reads.length > 0) rs1 = `<span class="instr-register">${reads[0]}</span>`;
+                    if (reads.length > 1) rs2 = `<span class="instr-register">${reads[1]}</span>`;
+                } else if (instr.type === 'BRANCH') {
+                    if (reads.length > 0) rs1 = `<span class="instr-register">${reads[0]}</span>`;
+                    if (reads.length > 1) rs2 = `<span class="instr-register">${reads[1]}</span>`;
+                }
+                
+                // Extrair imediato da string
+                const immMatch = instrStr.match(/imm:(\d+)/);
+                if (immMatch) imm = `<span class="instr-immediate">${immMatch[1]}</span>`;
+                
+                html += `<tr>
+                    <td><strong>${idx + 1}</strong></td>
+                    <td class="instr-hex">${instr.hex}</td>
+                    <td><span class="badge-custom ${typeColor}">${instr.type}</span></td>
+                    <td>${rd || '<span class="instr-empty">-</span>'}</td>
+                    <td>${rs1 || '<span class="instr-empty">-</span>'}</td>
+                    <td>${rs2 || '<span class="instr-empty">-</span>'}</td>
+                    <td>${imm || '<span class="instr-empty">-</span>'}</td>
+                </tr>`;
+            }
+        });
+
+        html += `</tbody>
+            </table>
+        </div>`;
+
+        output.innerHTML = html;
+    }
+
+    function displayConflicts(data) {
+        const output = document.getElementById('conflictOutput');
+        
+        if (data.conflicts.length === 0) {
+            output.innerHTML = '<div class="alert alert-success">✓ No conflicts detected!</div>';
+            return;
+        }
+
+        let html = `<div class="alert alert-danger mb-3">
+            ⚠️ <strong>${data.withConflicts} conflicts detected</strong> out of ${data.total} instructions
+        </div>`;
+
+        html += `<div class="table-responsive">
+            <table class="table table-hover instructions-table">
+                <thead>
+                    <tr>
+                        <th>Type</th>
+                        <th>Reads</th>
+                        <th>Writes</th>
+                        <th>Details</th>
+                    </tr>
+                </thead>
+                <tbody>`;
+
+        data.conflicts.forEach((conflict, idx) => {
+            const typeColor = getTypeColor(conflict.type);
+            const reads = conflict.reads?.join(', ') || '-';
+            const writes = conflict.writes?.join(', ') || '-';
+            
+            html += `<tr style="background: #ffe6e6;">
+                <td><span class="badge-custom ${typeColor}">${conflict.type}</span></td>
+                <td><span class="instr-register">${reads}</span></td>
+                <td><span class="instr-register">${writes}</span></td>
+                <td><small>${conflict.parsed}</small></td>
+            </tr>`;
+        });
+
+        html += `</tbody>
+            </table>
+        </div>`;
+
+        output.innerHTML = html;
+    }
+
+    function getTypeColor(type) {
+        const colors = {
+            'ALU': 'badge-alu',
+            'LOAD': 'badge-load',
+            'STORE': 'badge-store',
+            'BRANCH': 'badge-branch',
+            'JUMP': 'badge-jump',
+            'OTHER': 'badge-alu'
+        };
+        return colors[type] || 'badge-alu';
+    }
+
+    function updateStats(total, conflicts) {
+        const clean = total - conflicts;
+        const ratio = total > 0 ? ((conflicts / total) * 100).toFixed(1) : 0;
+
+        document.getElementById('stat-total').textContent = total;
+        document.getElementById('stat-with-conflicts').textContent = conflicts;
+        document.getElementById('stat-clean').textContent = clean;
+        document.getElementById('stat-ratio').textContent = ratio + '%';
+    }
+
+    function setLoadingState(isLoading) {
+        document.querySelectorAll('.spinner').forEach(spinner => {
+            spinner.parentElement.classList.toggle('loading', isLoading);
+        });
+    }
+
+    // Load default instructions on page load
+    window.addEventListener('load', () => {
+        processInstructions();
+    });
+</script>
+
+</body>
+</html>

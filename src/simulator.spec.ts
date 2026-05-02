@@ -44,8 +44,8 @@ describe("RISC-V Execution Simulator from input.txt", () => {
 
             if (ins instanceof I_Instruction) {
                 typeCounter.I++;
-                const rd = parseInt(ins.rd, 2);
-                const rs1 = parseInt(ins.rs1, 2);
+                const rd = parseInt(ins.rd.binary, 2);
+                const rs1 = parseInt(ins.rs1.binary, 2);
                 const imm = toSigned(ins.imm);
                 
                 const oldVal = registers[rs1];
@@ -55,9 +55,9 @@ describe("RISC-V Execution Simulator from input.txt", () => {
             } 
             else if (ins instanceof R_Instruction) {
                 typeCounter.R++;
-                const rd = parseInt((ins as any).rd, 2);
-                const rs1 = parseInt((ins as any).rs1, 2);
-                const rs2 = parseInt((ins as any).rs2, 2);
+                const rd = parseInt((ins as any).rd.binary, 2);
+                const rs1 = parseInt((ins as any).rs1.binary, 2);
+                const rs2 = parseInt((ins as any).rs2.binary, 2);
                 
                 const val1 = registers[rs1];
                 const val2 = registers[rs2];

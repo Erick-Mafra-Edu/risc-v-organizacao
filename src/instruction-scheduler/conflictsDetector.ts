@@ -89,7 +89,7 @@ function conflictsDetectorPipelineClassico(
         stallCycles = PipelineMode === "CLASSIC" ? distance : Math.max(distance - 1, 0);
       } else if (type === "RAW") {
         needsStall = PipelineMode === "CLASSIC";
-        stallCycles = PipelineMode === "CLASSIC" ? 1 : 0;
+        stallCycles = PipelineMode === "CLASSIC" ? 2 : 1;
       }
 
       returnInstruction.push({

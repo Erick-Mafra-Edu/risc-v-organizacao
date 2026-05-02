@@ -204,6 +204,81 @@ app.post("/api/resolve-conflicts", (req, res) => {
     }
 });
 
+// Analytics endpoint
+app.post("/api/analytics", (req, res) => {
+    try {
+        const { hexInstructions } = req.body;
+
+        if (!hexInstructions || !Array.isArray(hexInstructions)) {
+            return res.status(400).json({ error: "Invalid input: hexInstructions must be an array" });
+        }
+
+        const instructions: Instruction[] = [];
+
+        // Parse instructions
+        for (const hex of hexInstructions) {
+            const detector = new InstructionDetector(hex.trim());
+            const instruction = detector.detectInstruction();
+            instructions.push(instruction);
+        }
+
+        // 1. Classic Mode (No Forwarding)
+        const classicConflicts = conflictsDetectorPipelineClassico(instructions, "CLASSIC");
+        const classicStalls = classicConflicts
+            .filter(c => c.NeedsStall)
+            .reduce((sum, c) => sum + c.StallCycles, 0);
+
+        // 2. Forwarding Mode
+        let forwardingConflicts = conflictsDetectorPipelineClassico(instructions, "FORWARDING");
+        forwardingConflicts = forwardConflicts(forwardingConflicts);
+        const forwardingStalls = forwardingConflicts
+            .filter(c => c.NeedsStall)
+            .reduce((sum, c) => sum + c.StallCycles, 0);
+
+        // Performance Metrics
+        const totalInstructions = instructions.length;
+        const pipelineFill = 4; // Assuming 5-stage pipeline
+        
+        const classicTotalCycles = totalInstructions + pipelineFill + classicStalls;
+        const forwardingTotalCycles = totalInstructions + pipelineFill + forwardingStalls;
+
+        const classicCPI = totalInstructions > 0 ? (classicTotalCycles / totalInstructions).toFixed(2) : "0";
+        const forwardingCPI = totalInstructions > 0 ? (forwardingTotalCycles / totalInstructions).toFixed(2) : "0";
+
+        const speedup = forwardingTotalCycles > 0 ? (classicTotalCycles / forwardingTotalCycles).toFixed(2) : "1.00";
+        const overheadClassic = ((classicStalls / classicTotalCycles) * 100).toFixed(2) + "%";
+        const overheadForwarding = ((forwardingStalls / forwardingTotalCycles) * 100).toFixed(2) + "%";
+
+        res.json({
+            totalInstructions,
+            pipelineFill,
+            classic: {
+                totalStalls: classicStalls,
+                conflicts: classicConflicts.length,
+                totalCycles: classicTotalCycles,
+                cpi: classicCPI,
+                overhead: overheadClassic
+            },
+            forwarding: {
+                totalStalls: forwardingStalls,
+                conflicts: forwardingConflicts.length,
+                totalCycles: forwardingTotalCycles,
+                cpi: forwardingCPI,
+                overhead: overheadForwarding
+            },
+            comparison: {
+                stallReduction: classicStalls > 0 
+                    ? ((classicStalls - forwardingStalls) / classicStalls * 100).toFixed(2) + "%" 
+                    : "0%",
+                speedup: speedup + "x",
+                cycleReduction: ((1 - (forwardingTotalCycles / classicTotalCycles)) * 100).toFixed(2) + "%"
+            }
+        });
+    } catch (error) {
+        res.status(500).json({ error: (error as Error).message });
+    }
+});
+
 app.listen(PORT, () => {
     console.log(`🚀 RISC-V Server running on http://localhost:${PORT}`);
     console.log(`📝 API endpoints:`);
@@ -211,4 +286,6 @@ app.listen(PORT, () => {
     console.log(`   - POST /api/read-file (multipart/form-data with 'file' field)`);
     console.log(`   - POST /api/process (body: { hexInstructions: [] })`);
     console.log(`   - POST /api/detect-conflicts (body: { hexInstructions: [] })`);
+    console.log(`   - POST /api/resolve-conflicts (body: { hexInstructions: [] })`);
+    console.log(`   - POST /api/analytics (body: { hexInstructions: [] })`);
 });

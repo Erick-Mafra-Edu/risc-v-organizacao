@@ -146,15 +146,15 @@
 <body>
 
 <div class="container mt-5 mb-5" style="max-width: 1200px;">
-    <h1>🎯 RISC-V Instruction Simulator</h1>
+    <h1>🎯 Simulador de Instruções RISC-V</h1>
 
     <div class="row">
         <!-- Input Section -->
         <div class="col-lg-6">
             <div class="card">
-                <div class="card-header">📝 Input Instructions (HEX)</div>
+                <div class="card-header">📝 Instruções de Entrada (HEX)</div>
                 <div class="card-body">
-                    <textarea id="inputHex" class="form-control" rows="10" placeholder="Enter hex instructions (one per line)&#10;Example:&#10;0fc10297&#10;00028293&#10;0002a303">0fc10297
+                    <textarea id="inputHex" class="form-control" rows="10" placeholder="Insira instruções hex (uma por linha)&#10;Exemplo:&#10;0fc10297&#10;00028293&#10;0002a303">0fc10297
 00028293
 0002a303
 00500513
@@ -164,12 +164,12 @@
 004000ef</textarea>
                     <div class="mt-3">
                         <div class="mb-3">
-                            <label for="fileInput" class="form-label">📁 Upload Instruction File:</label>
+                            <label for="fileInput" class="form-label">📁 Upload de Arquivo de Instruções:</label>
                             <input type="file" class="form-control" id="fileInput" accept=".txt,.hex,.bin" onchange="handleFileUpload(event)">
                         </div>
                         <button class="btn btn-success btn-custom" onclick="processInstructions()">
                             <span class="spinner spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
-                            🔍 Parse Instructions
+                            🔍 Analisar Instruções
                         </button>
                     </div>
                 </div>
@@ -179,10 +179,10 @@
         <!-- Output Section -->
         <div class="col-lg-6">
             <div class="card">
-                <div class="card-header">✅ Parsed Instructions</div>
+                <div class="card-header">✅ Instruções Processadas</div>
                 <div class="card-body" style="max-height: 400px; overflow-y: auto;">
                     <div id="outputParsed">
-                        <div class="text-muted text-center">Output will appear here...</div>
+                        <div class="text-muted text-center">O resultado aparecerá aqui...</div>
                     </div>
                 </div>
             </div>
@@ -193,37 +193,102 @@
         <!-- Conflicts Detection -->
         <div class="col-lg-12">
             <div class="card">
-                <div class="card-header">⚠️ Conflict Detection (Pipeline)</div>
+                <div class="card-header">⚠️ Detecção de Conflitos (Pipeline)</div>
                 <div class="card-body">
                     <div class="mb-3">
-                        <label class="form-label fw-bold">Pipeline Mode:</label>
+                        <label class="form-label fw-bold">Modo do Pipeline:</label>
                         <div class="btn-group" role="group">
                             <input type="radio" class="btn-check" name="pipelineMode" id="modeClassic" value="CLASSIC" checked onchange="updateMode()">
                             <label class="btn btn-outline-primary" for="modeClassic">
-                                🔴 CLASSIC (No Forwarding)
+                                🔴 CLÁSSICO (Sem Forwarding)
                             </label>
                             
                             <input type="radio" class="btn-check" name="pipelineMode" id="modeForwarding" value="FORWARDING" onchange="updateMode()">
                             <label class="btn btn-outline-success" for="modeForwarding">
-                                🟢 FORWARDING (With Unit)
+                                🟢 FORWARDING (Com Unidade)
                             </label>
                         </div>
                     </div>
                     
                     <button class="btn btn-warning btn-custom mb-3" onclick="detectConflicts()">
                         <span class="spinner spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
-                        🔴 Detect Conflicts
+                        🔴 Detectar Conflitos
                     </button>
                     
                     <div id="conflictOutput">
-                        <div class="text-muted text-center">Run analysis to see conflicts...</div>
+                        <div class="text-muted text-center">Execute a análise para ver os conflitos...</div>
                     </div>
 
                     <!-- Resolved Conflicts Section -->
                     <div id="resolvedConflictsSection" style="display: none; margin-top: 30px;">
                         <hr>
-                        <h5 class="mt-4">✅ Conflicts Resolved with Forwarding</h5>
+                        <h5 class="mt-4">✅ Conflitos Resolvidos com Forwarding</h5>
                         <div id="resolvedConflictsOutput"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row mt-4">
+        <!-- Performance Analytics -->
+        <div class="col-lg-12">
+            <div class="card">
+                <div class="card-header">📈 Análise de Desempenho (Clássico vs Forwarding)</div>
+                <div class="card-body">
+                    <button class="btn btn-primary btn-custom mb-3" onclick="runAnalytics()">
+                        <span class="spinner spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
+                        📊 Executar Análise Completa
+                    </button>
+                    
+                    <div id="analyticsOutput" style="display: none;">
+                        <div class="row">
+                            <!-- Classic Card -->
+                            <div class="col-md-5">
+                                <div class="card bg-light">
+                                    <div class="card-body">
+                                        <h5 class="card-title text-danger">🔴 Modo Clássico</h5>
+                                        <hr>
+                                        <p><strong>Ciclos Totais:</strong> <span id="classic-cycles">-</span></p>
+                                        <p><strong>Stalls Totais:</strong> <span id="classic-stalls">-</span></p>
+                                        <p><strong>CPI:</strong> <span id="classic-cpi">-</span></p>
+                                        <p><strong>Overhead de Stall:</strong> <span id="classic-overhead" class="badge bg-danger">-</span></p>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <!-- Comparison Center -->
+                            <div class="col-md-2 d-flex align-items-center justify-content-center">
+                                <div class="text-center">
+                                    <div class="h2 text-success" id="speedup-val">1.0x</div>
+                                    <small class="text-muted fw-bold">SPEEDUP</small>
+                                </div>
+                            </div>
+                            
+                            <!-- Forwarding Card -->
+                            <div class="col-md-5">
+                                <div class="card bg-light">
+                                    <div class="card-body">
+                                        <h5 class="card-title text-success">🟢 Modo Forwarding</h5>
+                                        <hr>
+                                        <p><strong>Ciclos Totais:</strong> <span id="forwarding-cycles">-</span></p>
+                                        <p><strong>Stalls Totais:</strong> <span id="forwarding-stalls">-</span></p>
+                                        <p><strong>CPI:</strong> <span id="forwarding-cpi">-</span></p>
+                                        <p><strong>Overhead de Stall:</strong> <span id="forwarding-overhead" class="badge bg-success">-</span></p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="alert alert-info mt-3 text-center">
+                            🚀 <strong>Ganho de Eficiência:</strong> 
+                            O Forwarding reduziu o tempo de execução em <span id="cycle-reduction">-</span> 
+                            e eliminou <span id="stall-reduction">-</span> dos stalls.
+                        </div>
+                    </div>
+                    
+                    <div id="analyticsPlaceholder" class="text-muted text-center">
+                        Clique em "Executar Análise Completa" para comparar o desempenho do pipeline...
                     </div>
                 </div>
             </div>
@@ -234,24 +299,24 @@
         <!-- Statistics -->
         <div class="col-lg-12">
             <div class="card">
-                <div class="card-header">📊 Statistics</div>
+                <div class="card-header">📊 Estatísticas Gerais</div>
                 <div class="card-body">
                     <div id="statsOutput" class="row text-center">
                         <div class="col-md-3">
                             <h5 id="stat-total">0</h5>
-                            <small class="text-muted">Total Instructions</small>
+                            <small class="text-muted">Total de Instruções</small>
                         </div>
                         <div class="col-md-3">
                             <h5 id="stat-with-conflicts">0</h5>
-                            <small class="text-muted">With Conflicts</small>
+                            <small class="text-muted">Com Conflitos</small>
                         </div>
                         <div class="col-md-3">
                             <h5 id="stat-clean">0</h5>
-                            <small class="text-muted">Conflict-Free</small>
+                            <small class="text-muted">Sem Conflitos</small>
                         </div>
                         <div class="col-md-3">
                             <h5 id="stat-ratio">0%</h5>
-                            <small class="text-muted">Conflict Rate</small>
+                            <small class="text-muted">Taxa de Conflito</small>
                         </div>
                     </div>
                 </div>
@@ -263,15 +328,15 @@
         <!-- Resolved Instructions -->
         <div class="col-lg-12">
             <div class="card">
-                <div class="card-header">🔧 Instructions After Conflict Resolution</div>
+                <div class="card-header">🔧 Instruções Após Resolução de Conflitos</div>
                 <div class="card-body">
                     <button class="btn btn-info btn-custom mb-3" onclick="resolveConflicts()">
                         <span class="spinner spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
-                        ⚙️ Generate Resolved Code
+                        ⚙️ Gerar Código Resolvido
                     </button>
                     
                     <div id="resolvedInstructionsOutput">
-                        <div class="text-muted text-center">Click button to generate resolved instructions with NOPs...</div>
+                        <div class="text-muted text-center">Clique no botão para gerar as instruções com NOPs...</div>
                     </div>
                 </div>
             </div>
@@ -713,6 +778,56 @@
         </div>`;
 
         output.innerHTML = html;
+    }
+
+    async function runAnalytics() {
+        const input = document.getElementById('inputHex').value.trim();
+        const hexInstructions = input.split('\n').filter(line => line.trim());
+
+        if (hexInstructions.length === 0) {
+            alert('Please enter hex instructions');
+            return;
+        }
+
+        setLoadingState(true);
+
+        try {
+            const response = await fetch(`${API_URL}/api/analytics`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ hexInstructions })
+            });
+
+            if (!response.ok) throw new Error('Analytics failed');
+
+            const data = await response.json();
+            
+            // Update UI
+            document.getElementById('analyticsPlaceholder').style.display = 'none';
+            document.getElementById('analyticsOutput').style.display = 'block';
+
+            // Classic
+            document.getElementById('classic-cycles').textContent = data.classic.totalCycles;
+            document.getElementById('classic-stalls').textContent = data.classic.totalStalls;
+            document.getElementById('classic-cpi').textContent = data.classic.cpi;
+            document.getElementById('classic-overhead').textContent = data.classic.overhead;
+
+            // Forwarding
+            document.getElementById('forwarding-cycles').textContent = data.forwarding.totalCycles;
+            document.getElementById('forwarding-stalls').textContent = data.forwarding.totalStalls;
+            document.getElementById('forwarding-cpi').textContent = data.forwarding.cpi;
+            document.getElementById('forwarding-overhead').textContent = data.forwarding.overhead;
+
+            // Comparison
+            document.getElementById('speedup-val').textContent = data.comparison.speedup;
+            document.getElementById('cycle-reduction').textContent = data.comparison.cycleReduction;
+            document.getElementById('stall-reduction').textContent = data.comparison.stallReduction;
+
+        } catch (error) {
+            alert(`Error running analytics: ${error.message}`);
+        } finally {
+            setLoadingState(false);
+        }
     }
 
     function updateStats(total, conflicts) {

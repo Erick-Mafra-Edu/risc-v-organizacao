@@ -5,6 +5,7 @@ import * as fs from "fs";
 import fileUpload from "express-fileupload";
 import { InstructionDetector } from "./instructionDetector";
 import { conflictsDetectorPipelineClassico, forwardConflicts } from "./instruction-scheduler/conflictsDetector";
+import { ResolveConflict } from "./instruction-scheduler/resolveConflict";
 import { Instruction } from "./instructionsType";
 
 const app = express();
@@ -120,6 +121,69 @@ app.post("/api/detect-conflicts", (req, res) => {
             total: hexInstructions.length,
             withConflicts: conflictResults.length,
             conflicts: conflictResults,
+            mode: mode
+        });
+    } catch (error) {
+        res.status(500).json({ error: (error as Error).message });
+    }
+});
+
+// Resolve conflicts endpoint
+app.post("/api/resolve-conflicts", (req, res) => {
+    try {
+        const { hexInstructions, mode = "CLASSIC" } = req.body;
+
+        if (!hexInstructions || !Array.isArray(hexInstructions)) {
+            return res.status(400).json({ error: "Invalid input: hexInstructions must be an array" });
+        }
+
+        const instructions: Instruction[] = [];
+
+        // Parse instructions
+        for (const hex of hexInstructions) {
+            const detector = new InstructionDetector(hex.trim());
+            const instruction = detector.detectInstruction();
+            instructions.push(instruction);
+        }
+
+        // Detect conflicts with selected mode
+        let conflictingInstructions = conflictsDetectorPipelineClassico(instructions, mode as "CLASSIC" | "FORWARDING");
+        
+        // Apply forwarding filter if FORWARDING mode is selected
+        if (mode === "FORWARDING") {
+            conflictingInstructions = forwardConflicts(conflictingInstructions);
+        }
+
+        // Resolve conflicts by inserting NOPs
+        const resolvedInstructions = ResolveConflict(conflictingInstructions, instructions);
+
+        // Format resolved instructions for display
+        const resolvedResults = resolvedInstructions.map((instr, idx) => ({
+            index: idx,
+            isNop: instr.formatedString().includes("NOP"),
+            parsed: instr.formatedString(),
+            type: instr.getType(),
+            reads: instr.reads(),
+            writes: instr.writes()
+        }));
+
+        res.json({
+            original: {
+                total: hexInstructions.length,
+                instructions: instructions.map((instr, idx) => ({
+                    index: idx,
+                    hex: hexInstructions[idx],
+                    parsed: instr.formatedString(),
+                    type: instr.getType(),
+                    reads: instr.reads(),
+                    writes: instr.writes()
+                }))
+            },
+            resolved: {
+                total: resolvedInstructions.length,
+                nopsInserted: resolvedInstructions.length - hexInstructions.length,
+                instructions: resolvedResults
+            },
             mode: mode
         });
     } catch (error) {

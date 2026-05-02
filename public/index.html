@@ -250,7 +250,24 @@
         </div>
     </div>
 
-    <footer class="text-center mt-5 text-muted">
+    <div class="row mt-4">
+        <!-- Resolved Instructions -->
+        <div class="col-lg-12">
+            <div class="card">
+                <div class="card-header">🔧 Instructions After Conflict Resolution</div>
+                <div class="card-body">
+                    <button class="btn btn-info btn-custom mb-3" onclick="resolveConflicts()">
+                        <span class="spinner spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
+                        ⚙️ Generate Resolved Code
+                    </button>
+                    
+                    <div id="resolvedInstructionsOutput">
+                        <div class="text-muted text-center">Click button to generate resolved instructions with NOPs...</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
         <small>RISC-V Instruction Simulator v1.0</small>
     </footer>
 </div>
@@ -566,6 +583,116 @@
             'OTHER': 'badge-alu'
         };
         return colors[type] || 'badge-alu';
+    }
+
+    async function resolveConflicts() {
+        const input = document.getElementById('inputHex').value.trim();
+        const hexInstructions = input.split('\n').filter(line => line.trim());
+
+        if (hexInstructions.length === 0) {
+            alert('Please enter hex instructions');
+            return;
+        }
+
+        const selectedMode = document.querySelector('input[name="pipelineMode"]:checked').value;
+        setLoadingState(true);
+
+        try {
+            const response = await fetch(`${API_URL}/api/resolve-conflicts`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ hexInstructions, mode: selectedMode })
+            });
+
+            const data = await response.json();
+            displayResolvedInstructions(data);
+        } catch (error) {
+            alert(`Error: ${error.message}`);
+        } finally {
+            setLoadingState(false);
+        }
+    }
+
+    function displayResolvedInstructions(data) {
+        const output = document.getElementById('resolvedInstructionsOutput');
+        const { original, resolved } = data;
+
+        let html = `<div class="alert alert-info mb-3">
+            📊 Original: <strong>${original.total} instructions</strong> → 
+            🔧 Resolved: <strong>${resolved.total} instructions</strong> 
+            (<strong style="color: #e74c3c;">+${resolved.nopsInserted} NOP(s) inserted</strong>)
+        </div>`;
+
+        // Original instructions
+        html += `<h6 class="mt-4 mb-3">📋 Original Instructions:</h6>
+            <div class="table-responsive">
+            <table class="table table-sm instructions-table">
+                <thead>
+                    <tr>
+                        <th>#</th>
+                        <th>Type</th>
+                        <th>Instruction</th>
+                        <th>Reads</th>
+                        <th>Writes</th>
+                    </tr>
+                </thead>
+                <tbody>`;
+
+        original.instructions.forEach((instr, idx) => {
+            const typeColor = getTypeColor(instr.type);
+            const reads = instr.reads?.join(', ') || '-';
+            const writes = instr.writes?.join(', ') || '-';
+            
+            html += `<tr>
+                <td><strong>${idx + 1}</strong></td>
+                <td><span class="badge-custom ${typeColor}">${instr.type}</span></td>
+                <td><small>${instr.parsed}</small></td>
+                <td><small>${reads}</small></td>
+                <td><small>${writes}</small></td>
+            </tr>`;
+        });
+
+        html += `</tbody>
+            </table>
+        </div>`;
+
+        // Resolved instructions with NOPs
+        html += `<h6 class="mt-4 mb-3">⚙️ After Conflict Resolution (with NOPs):</h6>
+            <div class="table-responsive">
+            <table class="table table-sm instructions-table">
+                <thead>
+                    <tr>
+                        <th>#</th>
+                        <th>Cycle</th>
+                        <th>Type</th>
+                        <th>Instruction</th>
+                        <th>Reads</th>
+                        <th>Writes</th>
+                    </tr>
+                </thead>
+                <tbody>`;
+
+        resolved.instructions.forEach((instr, idx) => {
+            const typeColor = instr.isNop ? 'badge-secondary' : getTypeColor(instr.type);
+            const reads = instr.reads?.join(', ') || '-';
+            const writes = instr.writes?.join(', ') || '-';
+            const nopBadge = instr.isNop ? '<strong style="color: #e74c3c;">⏸️ NOP</strong>' : '';
+            
+            html += `<tr style="${instr.isNop ? 'background: #f0f0f5;' : ''}">
+                <td><strong>${idx + 1}</strong></td>
+                <td>${nopBadge || `<span class="badge bg-secondary">C${idx + 1}</span>`}</td>
+                <td><span class="badge-custom ${typeColor}">${instr.type}</span></td>
+                <td><small>${instr.parsed}</small></td>
+                <td><small>${reads}</small></td>
+                <td><small>${writes}</small></td>
+            </tr>`;
+        });
+
+        html += `</tbody>
+            </table>
+        </div>`;
+
+        output.innerHTML = html;
     }
 
     function updateStats(total, conflicts) {

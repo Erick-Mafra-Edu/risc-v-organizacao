@@ -192,8 +192,196 @@ npm run process -- "C:\meus-arquivos\instruções.txt"
 |--------|---------|--------|
 | **start** | `npm start` | Executa o programa principal |
 | **clean** | `npm run clean` | Remove a pasta `dist/` |
+| **server** | `npm run server` | Inicia o servidor web (porta 3000) |
+| **start** | `npm start` | Processa arquivo com análise de conflitos |
 
 Para mais detalhes sobre os scripts, consulte [SCRIPTS.md](SCRIPTS.md)
+
+---
+
+## 🌐 Servidor Web Express
+
+O projeto inclui um servidor web interativo para análise de instruções RISC-V com interface visual.
+
+### Iniciando o Servidor
+
+```bash
+npm run server
+```
+
+**Saída esperada:**
+```
+🚀 RISC-V Server running on http://localhost:3000
+📝 API endpoints:
+   - GET  /api/health
+   - POST /api/read-file (multipart/form-data with 'file' field)
+   - POST /api/process (body: { hexInstructions: [] })
+   - POST /api/detect-conflicts (body: { hexInstructions: [], mode: "CLASSIC"|"FORWARDING" })
+```
+
+### Acessar a Interface
+
+Abra o navegador e acesse: **http://localhost:3000**
+
+### Funcionalidades da Interface
+
+#### 1. **Input de Instruções**
+- Campo de texto para inserir instruções hexadecimais (uma por linha)
+- Upload de arquivo `.txt` contendo instruções
+- Carregamento automático de arquivo padrão na inicialização
+
+#### 2. **Tabela de Instruções Analisadas**
+Exibe cada instrução com:
+- Número sequencial (#)
+- Hexadecimal original (HEX)
+- Tipo de instrução (ALU, LOAD, STORE, BRANCH, JUMP)
+- Registrador destino (RD)
+- Registrador fonte 1 (RS1)
+- Registrador fonte 2 (RS2)
+- Valor imediato ou função (Imm/Funct)
+
+#### 3. **Seletor de Modo Pipeline**
+Escolha entre dois modos de análise de conflitos:
+
+**🔴 CLASSIC (No Forwarding)**
+- Analisa conflitos sem unidade de forwarding
+- Mostra todos os conflitos RAW, WAW, WAR, CONTROL, LOAD
+- Cenário base: 75% de conflitos
+
+**🟢 FORWARDING (With Unit)**
+- Analisa com unidade de forwarding de dados
+- Filtra conflitos que podem ser resolvidos por forwarding
+- Mostra apenas conflitos que ainda precisam de stalls
+- Redução para: 37.5% de conflitos
+
+#### 4. **Detecção de Conflitos**
+Clique em "Detect Conflicts" para:
+- Analisar todos os conflitos de pipeline
+- Exibir tipo, leitura e escrita de cada conflito
+- Mostrar instruções afetadas
+
+#### 5. **Seção de Conflitos Resolvidos** *(FORWARDING mode)*
+Quando em modo FORWARDING, uma tabela extra mostra:
+- Conflitos que FORAM resolvidos pelo forwarding
+- Quantidade de ciclos que foram salvos (redução de stalls)
+- Detalhes da instrução problêmática
+
+#### 6. **Estatísticas em Tempo Real**
+Painel com:
+- Total de instruções
+- Instruções com conflitos
+- Instruções sem conflitos
+- Taxa de conflitos (%)
+
+### Endpoints da API
+
+#### GET `/api/health`
+Verifica se o servidor está ativo.
+
+```bash
+curl http://localhost:3000/api/health
+```
+
+Resposta:
+```json
+{ "status": "Server running" }
+```
+
+#### POST `/api/read-file`
+Processa upload de arquivo de instruções.
+
+```bash
+curl -X POST -F "file=@instruções.txt" http://localhost:3000/api/read-file
+```
+
+Resposta:
+```json
+{
+  "filename": "instruções.txt",
+  "size": 128,
+  "content": "0fc10297\n00028293\n0002a303\n..."
+}
+```
+
+#### POST `/api/process`
+Analisa instruções hexadecimais.
+
+```bash
+curl -X POST -H "Content-Type: application/json" \
+  -d '{"hexInstructions": ["0fc10297", "00028293", "0002a303"]}' \
+  http://localhost:3000/api/process
+```
+
+Resposta:
+```json
+{
+  "instructions": [
+    {
+      "hex": "0fc10297",
+      "type": "ALU",
+      "parsed": "Instruction of Type U with rd:t0 and imm:00001111110000010000",
+      "reads": [],
+      "writes": ["t0"]
+    },
+    ...
+  ]
+}
+```
+
+#### POST `/api/detect-conflicts`
+Detecta conflitos de pipeline (com suporte a forwarding).
+
+**Modo CLASSIC:**
+```bash
+curl -X POST -H "Content-Type: application/json" \
+  -d '{
+    "hexInstructions": ["0fc10297", "00028293", "0002a303"],
+    "mode": "CLASSIC"
+  }' \
+  http://localhost:3000/api/detect-conflicts
+```
+
+**Modo FORWARDING:**
+```bash
+curl -X POST -H "Content-Type: application/json" \
+  -d '{
+    "hexInstructions": ["0fc10297", "00028293", "0002a303"],
+    "mode": "FORWARDING"
+  }' \
+  http://localhost:3000/api/detect-conflicts
+```
+
+Resposta:
+```json
+{
+  "total": 8,
+  "withConflicts": 6,
+  "conflicts": [
+    {
+      "parsed": "Instruction of Type I with rd:t0 and funct3:000 and rs1:t0 and imm:000000000000",
+      "type": "ALU",
+      "reads": ["t0"],
+      "writes": ["t0"],
+      "conflictType": "RAW",
+      "index": 1,
+      "needsStall": true,
+      "stallCycles": 1
+    },
+    ...
+  ],
+  "mode": "CLASSIC"
+}
+```
+
+### Tecnologias do Servidor
+
+- **Express.js** (4.18.2) - Framework HTTP
+- **CORS** (2.8.5) - Compartilhamento de recursos entre origens
+- **express-fileupload** (1.4.0) - Processamento de uploads
+- **Bootstrap 5.3.0** - Interface responsiva
+- **JavaScript Vanilla** - Interatividade do cliente
+
+---
 
 ## a📝 Formato do Arquivo de Entrada
 
@@ -237,17 +425,26 @@ Este projeto foi desenvolvido com assistência de inteligência artificial para:
 
 ## 🔍 Principais Classes
 
-### `InstructionDetector`
-Classe responsável por:
-- Converter hexadecimal ↔ binário
-- Detectar o tipo de instrução baseado no opcode
-- Seria o SimpleFactory do projeto onde instancia as classes
+### `Register`
+Classe que encapsula informações de registrador RISC-V:
+- **Propriedades:**
+  - `binary`: Representação binária do índice (ex: "00001")
+  - `ABIName`: Nome do registrador em ABI (ex: "t0", "sp", "ra")
+- **Método:**
+  - `getABIName(index: string)`: Converte índice binário para nome ABI
+- **Mapeamento completo:** zero, ra, sp, gp, tp, t0-t6, s0-s11, a0-a7, etc.
 
 ### `Instruction` (Abstrata)
 Classe base para todas as instruções com:
-- Validação de opcode
-- Método abstrato `formatedString()`
-- Encapsulamento de dados
+- **Propriedades:**
+  - Registradores como objetos `Register` (não strings)
+  - Valores imediatos
+  - Opcode validado
+- **Métodos:**
+  - `formatedString()`: Retorna string formatada com nomes ABI
+  - `reads()`: Retorna array de ABI names dos registradores lidos
+  - `writes()`: Retorna array de ABI names dos registradores escritos
+  - `getType()`: Retorna tipo da instrução (ALU, LOAD, STORE, BRANCH, JUMP)
 
 ### Classes de Tipos
 - `R_Instruction`: Operações entre registros
@@ -257,6 +454,24 @@ Classe base para todas as instruções com:
 - `U_Instruction`: Upper imediato
 - `J_Instruction`: Jump
 - `SYSTEM_Instruction`: Chamadas de sistema
+
+### `conflictsDetectorPipelineClassico`
+Função que analisa conflitos de pipeline em instruções sequenciais:
+- **Detecta conflitos:**
+  - **RAW** (Read After Write): Lê registrador escrito na instrução anterior
+  - **LOAD Hazard**: Dados carregados pela LOAD são imediatamente usados
+  - **CONTROL**: Branch ou Jump afetam PC na próxima instrução
+- **Modo CLASSIC:** Necessita de stalls para todos os conflitos
+- **Modo FORWARDING:** Reduz stalls usando unidade de forwarding de dados
+- **Retorna:** Array de objetos `Conflicts` com tipo, índice, e ciclos de stall necessários
+
+### `forwardConflicts`
+Função que filtra conflitos para modo FORWARDING:
+- Remove conflitos RAW que podem ser resolvidos por forwarding
+- Mantém conflitos que necessitam de stalls mesmo com forwarding:
+  - LOAD Hazards (use após load)
+  - CONTROL Hazards (branch/jump)
+- Reduz significativamente o número de stalls necessários
 
 ## 📚 Referências
 

@@ -4,7 +4,7 @@ import path from "path";
 import * as fs from "fs";
 import fileUpload from "express-fileupload";
 import { InstructionDetector } from "./instructionDetector";
-import { conflictsDetectorPipelineClassico } from "./instruction-scheduler/conflictsDetector";
+import { conflictsDetectorPipelineClassico, forwardConflicts } from "./instruction-scheduler/conflictsDetector";
 import { Instruction } from "./instructionsType";
 
 const app = express();
@@ -82,7 +82,7 @@ app.post("/api/process", (req, res) => {
 // Detect conflicts endpoint
 app.post("/api/detect-conflicts", (req, res) => {
     try {
-        const { hexInstructions } = req.body;
+        const { hexInstructions, mode = "CLASSIC" } = req.body;
 
         if (!hexInstructions || !Array.isArray(hexInstructions)) {
             return res.status(400).json({ error: "Invalid input: hexInstructions must be an array" });
@@ -97,20 +97,30 @@ app.post("/api/detect-conflicts", (req, res) => {
             instructions.push(instruction);
         }
 
-        // Detect conflicts
-        const conflictingInstructions = conflictsDetectorPipelineClassico(instructions, "CLASSIC");
+        // Detect conflicts with selected mode
+        let conflictingInstructions = conflictsDetectorPipelineClassico(instructions, mode as "CLASSIC" | "FORWARDING");
+        
+        // Apply forwarding filter if FORWARDING mode is selected
+        if (mode === "FORWARDING") {
+            conflictingInstructions = forwardConflicts(conflictingInstructions);
+        }
 
-        const conflictResults = conflictingInstructions.map(instr => ({
-            parsed: instr.formatedString(),
-            type: instr.getType(),
-            reads: instr.reads(),
-            writes: instr.writes()
+        const conflictResults = conflictingInstructions.map(conflict => ({
+            parsed: conflict.INSTRUCTION.formatedString(),
+            type: conflict.INSTRUCTION.getType(),
+            reads: conflict.INSTRUCTION.reads(),
+            writes: conflict.INSTRUCTION.writes(),
+            conflictType: conflict.Type,
+            index: conflict.Index,
+            needsStall: conflict.NeedsStall,
+            stallCycles: conflict.StallCycles
         }));
 
         res.json({
             total: hexInstructions.length,
             withConflicts: conflictResults.length,
-            conflicts: conflictResults
+            conflicts: conflictResults,
+            mode: mode
         });
     } catch (error) {
         res.status(500).json({ error: (error as Error).message });

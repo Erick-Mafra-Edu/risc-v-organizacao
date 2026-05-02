@@ -2,6 +2,7 @@ import { readFileSync } from "node:fs";
 import { InstructionDetector } from "./instructionDetector";
 import { conflictsDetectorPipelineClassico } from "./instruction-scheduler/conflictsDetector";
 import { Instruction } from "./instructionsType";
+import { ResolveConflict } from "./instruction-scheduler/resolveConflict";
     const inputFile = process.argv[2] || "input.txt";
 
     const input = readFileSync(inputFile, "utf-8");
@@ -18,11 +19,21 @@ import { Instruction } from "./instructionsType";
     });
     const conflictedInstructions = conflictsDetectorPipelineClassico(instructionsInFile);
     console.log("Conflitos detectados Sem o Fowarding:");
-    conflictedInstructions.forEach(instruction => {
-        console.log(instruction.formatedString());
+    conflictedInstructions.forEach(conflict => {
+        console.log(conflict.INSTRUCTION.formatedString());
     });
     console.log("Conflitos detectados Com o Fowarding:");
     const conflictedInstructionsWithForwarding = conflictsDetectorPipelineClassico(instructionsInFile, "FORWARDING");
-    conflictedInstructionsWithForwarding.forEach(instruction => {
-        console.log(instruction.formatedString(),instruction.getType());
+    conflictedInstructionsWithForwarding.forEach(conflict => {
+        console.log(conflict.INSTRUCTION.formatedString(), conflict.INSTRUCTION.getType());
+    });
+    console.log("Conflitos resolvidos Sem o Fowarding:");
+    const resolvedInstructions = ResolveConflict(conflictedInstructions, instructionsInFile);
+    resolvedInstructions.forEach(instruction => {
+        console.log(instruction.formatedString());
+    });
+    console.log("Conflitos resolvidos Com o Fowarding:");
+    const resolvedInstructionsWithForwarding = ResolveConflict(conflictedInstructionsWithForwarding, instructionsInFile);
+    resolvedInstructionsWithForwarding.forEach(instruction => {
+        console.log(instruction.formatedString());
     });

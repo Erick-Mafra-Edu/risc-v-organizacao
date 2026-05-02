@@ -186,6 +186,21 @@
             <div class="card">
                 <div class="card-header">⚠️ Conflict Detection (Pipeline)</div>
                 <div class="card-body">
+                    <div class="mb-3">
+                        <label class="form-label fw-bold">Pipeline Mode:</label>
+                        <div class="btn-group" role="group">
+                            <input type="radio" class="btn-check" name="pipelineMode" id="modeClassic" value="CLASSIC" checked onchange="updateMode()">
+                            <label class="btn btn-outline-primary" for="modeClassic">
+                                🔴 CLASSIC (No Forwarding)
+                            </label>
+                            
+                            <input type="radio" class="btn-check" name="pipelineMode" id="modeForwarding" value="FORWARDING" onchange="updateMode()">
+                            <label class="btn btn-outline-success" for="modeForwarding">
+                                🟢 FORWARDING (With Unit)
+                            </label>
+                        </div>
+                    </div>
+                    
                     <button class="btn btn-warning btn-custom mb-3" onclick="detectConflicts()">
                         <span class="spinner spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
                         🔴 Detect Conflicts
@@ -193,6 +208,13 @@
                     
                     <div id="conflictOutput">
                         <div class="text-muted text-center">Run analysis to see conflicts...</div>
+                    </div>
+
+                    <!-- Resolved Conflicts Section -->
+                    <div id="resolvedConflictsSection" style="display: none; margin-top: 30px;">
+                        <hr>
+                        <h5 class="mt-4">✅ Conflicts Resolved with Forwarding</h5>
+                        <div id="resolvedConflictsOutput"></div>
                     </div>
                 </div>
             </div>
@@ -317,23 +339,44 @@
             return;
         }
 
+        const selectedMode = document.querySelector('input[name="pipelineMode"]:checked').value;
         setLoadingState(true);
 
         try {
+            // Fetch conflicts for selected mode
             const response = await fetch(`${API_URL}/api/detect-conflicts`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ hexInstructions })
+                body: JSON.stringify({ hexInstructions, mode: selectedMode })
             });
 
             const data = await response.json();
             displayConflicts(data);
+            
+            // If forwarding mode, also fetch classic mode to show resolved conflicts
+            if (selectedMode === "FORWARDING") {
+                const classicResponse = await fetch(`${API_URL}/api/detect-conflicts`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ hexInstructions, mode: "CLASSIC" })
+                });
+                
+                const classicData = await classicResponse.json();
+                displayResolvedConflicts(classicData, data);
+            } else {
+                document.getElementById('resolvedConflictsSection').style.display = 'none';
+            }
+            
             updateStats(data.total, data.withConflicts);
         } catch (error) {
             alert(`Error: ${error.message}`);
         } finally {
             setLoadingState(false);
         }
+    }
+
+    function updateMode() {
+        detectConflicts();
     }
 
     function displayParsedInstructions(instructions) {
@@ -443,6 +486,65 @@
                 <td><span class="badge-custom ${typeColor}">${conflict.type}</span></td>
                 <td><span class="instr-register">${reads}</span></td>
                 <td><span class="instr-register">${writes}</span></td>
+                <td><small>${conflict.parsed}</small></td>
+            </tr>`;
+        });
+
+        html += `</tbody>
+            </table>
+        </div>`;
+
+        output.innerHTML = html;
+    }
+
+    function displayResolvedConflicts(classicData, forwardingData) {
+        const section = document.getElementById('resolvedConflictsSection');
+        const output = document.getElementById('resolvedConflictsOutput');
+
+        // Find conflicts that exist in classic but not in forwarding (by instruction index)
+        const resolvedConflicts = classicData.conflicts.filter(classicConflict => {
+            return !forwardingData.conflicts.some(fwdConflict => 
+                fwdConflict.index === classicConflict.index
+            );
+        });
+
+        if (resolvedConflicts.length === 0) {
+            output.innerHTML = '<div class="alert alert-info">No conflicts resolved by forwarding.</div>';
+            section.style.display = 'none';
+            return;
+        }
+
+        section.style.display = 'block';
+
+        let html = `<div class="alert alert-success mb-3">
+            ✅ <strong>${resolvedConflicts.length} conflict(s) resolved</strong> using forwarding (${classicData.withConflicts} → ${forwardingData.withConflicts})
+        </div>`;
+
+        html += `<div class="table-responsive">
+            <table class="table table-hover instructions-table">
+                <thead>
+                    <tr>
+                        <th>#</th>
+                        <th>Type</th>
+                        <th>Reads</th>
+                        <th>Writes</th>
+                        <th>Stall Cycles (CLASSIC)</th>
+                        <th>Instruction</th>
+                    </tr>
+                </thead>
+                <tbody>`;
+
+        resolvedConflicts.forEach((conflict, idx) => {
+            const typeColor = getTypeColor(conflict.type);
+            const reads = conflict.reads?.join(', ') || '-';
+            const writes = conflict.writes?.join(', ') || '-';
+            
+            html += `<tr style="background: #e6ffe6;">
+                <td><strong>${conflict.index + 1}</strong></td>
+                <td><span class="badge-custom ${typeColor}">${conflict.type}</span></td>
+                <td><span class="instr-register">${reads}</span></td>
+                <td><span class="instr-register">${writes}</span></td>
+                <td><span style="background: #fff3e0; padding: 3px 6px; border-radius: 3px;">${conflict.stallCycles} cycle(s)</span></td>
                 <td><small>${conflict.parsed}</small></td>
             </tr>`;
         });

@@ -157,15 +157,28 @@ app.post("/api/resolve-conflicts", (req, res) => {
         // Resolve conflicts by inserting NOPs
         const resolvedInstructions = ResolveConflict(conflictingInstructions, instructions);
 
+        // Helper function to detect NOP instructions
+        const isNopInstruction = (instr: Instruction): boolean => {
+            // NOP is addi zero, zero, 0 (rd=zero, rs1=zero, imm=0)
+            const reads = instr.reads() || [];
+            const writes = instr.writes() || [];
+            return reads.length === 1 && writes.length === 1 && 
+                   reads[0] === "zero" && writes[0] === "zero" &&
+                   instr.formatedString().includes("imm:000000000000");
+        };
+
         // Format resolved instructions for display
-        const resolvedResults = resolvedInstructions.map((instr, idx) => ({
-            index: idx,
-            isNop: instr.formatedString().includes("NOP"),
-            parsed: instr.formatedString(),
-            type: instr.getType(),
-            reads: instr.reads(),
-            writes: instr.writes()
-        }));
+        const resolvedResults = resolvedInstructions.map((instr, idx) => {
+            const nop = isNopInstruction(instr);
+            return {
+                index: idx,
+                isNop: nop,
+                parsed: instr.formatedString(),
+                type: nop ? "NOP" : instr.getType(),
+                reads: instr.reads(),
+                writes: instr.writes()
+            };
+        });
 
         res.json({
             original: {

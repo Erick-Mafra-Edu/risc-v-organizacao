@@ -132,6 +132,15 @@
             color: #999;
             font-style: italic;
         }
+        .badge-nop {
+            background: linear-gradient(135deg, #e74c3c 0%, #c0392b 100%);
+            color: white;
+            font-weight: bold;
+        }
+        .row-nop {
+            background: linear-gradient(90deg, #ffe6e6 0%, #fff5f5 100%) !important;
+            border-left: 4px solid #e74c3c !important;
+        }
     </style>
 </head>
 <body>
@@ -673,19 +682,31 @@
                 <tbody>`;
 
         resolved.instructions.forEach((instr, idx) => {
-            const typeColor = instr.isNop ? 'badge-secondary' : getTypeColor(instr.type);
             const reads = instr.reads?.join(', ') || '-';
             const writes = instr.writes?.join(', ') || '-';
-            const nopBadge = instr.isNop ? '<strong style="color: #e74c3c;">⏸️ NOP</strong>' : '';
             
-            html += `<tr style="${instr.isNop ? 'background: #f0f0f5;' : ''}">
-                <td><strong>${idx + 1}</strong></td>
-                <td>${nopBadge || `<span class="badge bg-secondary">C${idx + 1}</span>`}</td>
-                <td><span class="badge-custom ${typeColor}">${instr.type}</span></td>
-                <td><small>${instr.parsed}</small></td>
-                <td><small>${reads}</small></td>
-                <td><small>${writes}</small></td>
-            </tr>`;
+            if (instr.isNop) {
+                // NOP instruction - special styling
+                html += `<tr class="row-nop">
+                    <td><strong>${idx + 1}</strong></td>
+                    <td><span class="badge bg-secondary">C${idx + 1}</span></td>
+                    <td><span class="badge-custom badge-nop">⏸️ NOP</span></td>
+                    <td><small style="color: #999; font-style: italic;">${instr.parsed}</small></td>
+                    <td><small style="color: #999;">${reads}</small></td>
+                    <td><small style="color: #999;">${writes}</small></td>
+                </tr>`;
+            } else {
+                // Regular instruction
+                const typeColor = getTypeColor(instr.type);
+                html += `<tr>
+                    <td><strong>${idx + 1}</strong></td>
+                    <td><span class="badge bg-secondary">C${idx + 1}</span></td>
+                    <td><span class="badge-custom ${typeColor}">${instr.type}</span></td>
+                    <td><small>${instr.parsed}</small></td>
+                    <td><small>${reads}</small></td>
+                    <td><small>${writes}</small></td>
+                </tr>`;
+            }
         });
 
         html += `</tbody>

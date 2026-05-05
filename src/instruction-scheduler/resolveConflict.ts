@@ -1,11 +1,7 @@
 import { Instruction } from "../instructionsType";
 import { I_Instruction } from "../instructions";
-import { log } from "node:console";
 import { controlConflict, loadConflict,Conflicts } from "./conflictsDetector";
 
-
-process.env.LOG_LEVEL = "DEBUG"; // Set log level to DEBUG for detailed output
-const logLevel = process.env.LOG_LEVEL || "INFO";
 
 function createNopInstruction(): Instruction {
     return new I_Instruction(
@@ -31,9 +27,9 @@ function ResolveConflict(
         result.push(createNopInstruction());
       }
     }
-    if (logLevel === "DEBUG")
+    if (process.env.LOG_LEVEL === "DEBUG")
         if (conflict) {
-            log(`Instruction at index ${index} (${instruction.formatedString()}) has a conflict of type ${conflict.Type}. Needs stall: ${conflict.NeedsStall}, Stall cycles: ${conflict.StallCycles}`);
+            console.log(`Instruction at index ${index} (${instruction.formatedString()}) has a conflict of type ${conflict.Type}. Needs stall: ${conflict.NeedsStall}, Stall cycles: ${conflict.StallCycles}`);
         }
     
     result.push(instruction);
@@ -41,5 +37,4 @@ function ResolveConflict(
 
   return result;
 }
-export default ResolveConflict;
 export { ResolveConflict };

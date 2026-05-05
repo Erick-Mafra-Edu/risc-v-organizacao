@@ -12,18 +12,44 @@ export class RISCVSimulator {
     private memory: Map<number, number> = new Map();
     private instructions: Instruction[] = [];
     private executionLog: string[] = [];
+    private pendingWrites: { reg: Register, value: number, cyclesLeft: number }[] = [];
+    private mode: 'NAIVE' | 'PIPELINE';
 
-    constructor(instructions: Instruction[]) {
+    constructor(instructions: Instruction[], mode: 'NAIVE' | 'PIPELINE' = 'NAIVE') {
         this.instructions = instructions;
+        this.mode = mode;
     }
 
     private getRegisterValue(reg: Register): number {
         return this.registers[reg.index];
     }
 
+    private tick() {
+        if (this.mode === 'PIPELINE') {
+            // Processa escritas pendentes
+            for (let i = 0; i < this.pendingWrites.length; i++) {
+                const write = this.pendingWrites[i];
+                write.cyclesLeft--;
+                if (write.cyclesLeft <= 0) {
+                    if (write.reg.index !== 0) {
+                        this.registers[write.reg.index] = write.value;
+                    }
+                    this.pendingWrites.splice(i, 1);
+                    i--;
+                }
+            }
+        }
+    }
+
     private setRegisterValue(reg: Register, value: number) {
-        if (reg.index !== 0) {
+        if (reg.index === 0) return;
+
+        if (this.mode === 'NAIVE') {
             this.registers[reg.index] = value;
+        } else {
+            // Em modo PIPELINE, a escrita demora 2 ciclos para chegar no WB
+            // (EX -> MEM -> WB)
+            this.pendingWrites.push({ reg, value, cyclesLeft: 2 });
         }
     }
 
@@ -35,6 +61,8 @@ export class RISCVSimulator {
 
     public step(): boolean {
         if (this.pc / 4 >= this.instructions.length) return false;
+
+        this.tick(); // Avança o relógio da pipeline (processa escritas do passado)
 
         const instruction = this.instructions[this.pc / 4];
         const currentPC = this.pc;
@@ -147,6 +175,11 @@ export class RISCVSimulator {
     public run() {
         while (this.step()) {
             if (this.executionLog.length > 1000) break; // Safety break
+        }
+        // Drain pipeline (finish pending writes)
+        while (this.pendingWrites.length > 0) {
+            this.tick();
+            if (this.executionLog.length > 1100) break;
         }
     }
 

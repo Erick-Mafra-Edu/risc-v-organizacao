@@ -41,10 +41,15 @@ try {
     const resolvedInstructions = ResolveConflict(conflictedInstructions, instructionsInFile);
     const resolvedInstructionsWithForwarding = ResolveConflict(conflictedInstructionsWithForwarding, instructionsInFile);
 
-    console.log("\n--- Simulation (Original Code) ---");
-    const simulator = new RISCVSimulator(instructionsInFile);
-    simulator.run();
-    simulator.printState();
+    console.log("\n--- Simulation: ORIGINAL CODE (with Hazards) ---");
+    const simulatorOriginal = new RISCVSimulator(instructionsInFile, 'PIPELINE');
+    simulatorOriginal.run();
+    simulatorOriginal.printState();
+
+    console.log("\n--- Simulation: RESOLVED CODE (with NOPs) ---");
+    const simulatorResolved = new RISCVSimulator(resolvedInstructions, 'PIPELINE');
+    simulatorResolved.run();
+    simulatorResolved.printState();
 
 } catch (err) {
     console.error("Could not read input file:", inputFile);

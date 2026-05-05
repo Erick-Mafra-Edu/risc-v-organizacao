@@ -59,6 +59,7 @@
 - [x] Calcular sobrecusto (NOPs inseridos)
 - [x] Comparar CLASSIC vs FORWARDING
 - [x] **Simulador Expandido:** Execução completa de instruções ALU, Load, Store, Branch e Jump.
+- [x] **Simulação de Hazards:** Implementação de atraso de escrita (PIPELINE mode) para demonstrar erros sem NOPs e correção com NOPs.
 - [x] **Beautify Output:** Formatação em estilo assembly e tabelas de estado final.
 
 ---

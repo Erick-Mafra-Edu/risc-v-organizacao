@@ -9,14 +9,15 @@
 - [x] Classificar tipo (ALU, LOAD, STORE, BRANCH, JUMP)
 - [x] Implementar `reads()`
 - [x] Implementar `writes()`
+- [x] Implementar `getMnemonic()` para todas as instruções (Assembly format)
 
 ## 🔍 Detecção de Conflitos
 
 ### Dados
 - [x] Detectar RAW
 - [x] Detectar LOAD hazard
-- [ ] Detectar WAW (extra)
-- [ ] Detectar WAR (extra)
+- [ ] Detectar WAW (função existe, não integrada no loop principal)
+- [ ] Detectar WAR (função existe, não integrada no loop principal)
 
 ### Controle
 - [x] Detectar BRANCH
@@ -52,11 +53,14 @@
 
 ---
 
-## 📊 Estatísticas
+## 📊 Estatísticas e Simulação
 - [x] Contar instruções originais
 - [x] Contar instruções após NOPs
 - [x] Calcular sobrecusto (NOPs inseridos)
 - [x] Comparar CLASSIC vs FORWARDING
+- [x] **Simulador Expandido:** Execução completa de instruções ALU, Load, Store, Branch e Jump.
+- [x] **Simulação de Hazards:** Implementação de atraso de escrita (PIPELINE mode) para demonstrar erros sem NOPs e correção com NOPs.
+- [x] **Beautify Output:** Formatação em estilo assembly e tabelas de estado final.
 
 ---
 

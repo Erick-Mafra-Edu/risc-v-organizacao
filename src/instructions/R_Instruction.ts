@@ -1,13 +1,36 @@
 import { Instruction, InstructionOpcode, Register } from "../instructionsType";
 class R_Instruction extends Instruction {
-    private rd: Register;
-    private funct3:string;
-    private rs1: Register;
-    private rs2: Register;
-    private funct7:string;
-    public formatedString(): string {
-       return `Instruction of Type R with rd:${this.rd.ABIName} and funct3:${this.funct3} and rs1:${this.rs1.ABIName} and rs2:${this.rs2.ABIName} and funct7:${this.funct7}` 
+    public rd: Register;
+    public funct3:string;
+    public rs1: Register;
+    public rs2: Register;
+    public funct7:string;
+
+    public getMnemonic(): string {
+        if (this.funct7 === "0000000") {
+            switch (this.funct3) {
+                case "000": return "add";
+                case "001": return "sll";
+                case "010": return "slt";
+                case "011": return "sltu";
+                case "100": return "xor";
+                case "101": return "srl";
+                case "110": return "or";
+                case "111": return "and";
+            }
+        } else if (this.funct7 === "0100000") {
+            switch (this.funct3) {
+                case "000": return "sub";
+                case "101": return "sra";
+            }
+        }
+        return `r_type_${this.funct7}_${this.funct3}`;
     }
+
+    public formatedString(): string {
+       return `${this.getMnemonic()} ${this.rd.ABIName}, ${this.rs1.ABIName}, ${this.rs2.ABIName}`;
+    }
+
     constructor(
         opcode:InstructionOpcode | string,
         rd:string,

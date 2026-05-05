@@ -1,9 +1,24 @@
 import { Instruction, InstructionOpcode, Register } from "../instructionsType";
 class J_Instruction extends Instruction {
-    private rd: Register;
-    private imm:string;
+    public rd: Register;
+    public imm:string;
+
+    public getMnemonic(): string {
+        return "jal";
+    }
+
+    private getImmediateValue(): number {
+        const val = parseInt(this.imm, 2);
+        if (this.imm[0] === '1') { // 21-bit sign extension
+            return val - Math.pow(2, 21);
+        }
+        return val;
+    }
+
     public formatedString(): string {
-        return `Instruction of Type J with rd:${this.rd.ABIName} and imm:${this.imm}` 
+        const mnemonic = this.getMnemonic();
+        const immVal = this.getImmediateValue();
+        return `${mnemonic} ${this.rd.ABIName}, ${immVal}`;
     }
     constructor(
         opcode:string,

@@ -1,12 +1,32 @@
 import { Instruction, InstructionOpcode, Register } from "../instructionsType";
 
 class S_Instruction extends Instruction {
-    private funct3:string;
-    private rs1: Register;
-    private rs2: Register;
-    private imm:string;
+    public funct3:string;
+    public rs1: Register;
+    public rs2: Register;
+    public imm:string;
+
+    public getMnemonic(): string {
+        switch (this.funct3) {
+            case "000": return "sb";
+            case "001": return "sh";
+            case "010": return "sw";
+        }
+        return `s_type_${this.funct3}`;
+    }
+
+    private getImmediateValue(): number {
+        const val = parseInt(this.imm, 2);
+        if (this.imm[0] === '1') { // 12-bit sign extension
+            return val - Math.pow(2, 12);
+        }
+        return val;
+    }
+
     public formatedString(): string {
-        return `Instruction of Type S with funct3:${this.funct3} and rs1:${this.rs1.ABIName} and rs2:${this.rs2.ABIName} and imm:${this.imm}` 
+        const mnemonic = this.getMnemonic();
+        const immVal = this.getImmediateValue();
+        return `${mnemonic} ${this.rs2.ABIName}, ${immVal}(${this.rs1.ABIName})`;
     }
     constructor(
         opcode:string,

@@ -3,37 +3,49 @@ import { InstructionDetector } from "./instructionDetector";
 import { conflictsDetectorPipelineClassico } from "./instruction-scheduler/conflictsDetector";
 import { Instruction } from "./instructionsType";
 import { ResolveConflict } from "./instruction-scheduler/resolveConflict";
-    const inputFile = process.argv[2] || "input.txt";
+import { RISCVSimulator } from "./simulator";
 
+const inputFile = process.argv[2] || "input.txt";
+
+try {
     const input = readFileSync(inputFile, "utf-8");
 
     const instructionsInFile: Instruction[] = [];
-    input.split("\n").forEach(line => {
+    console.log("\n" + "╔═══════════════════════════════════════════════════════════════╗");
+    console.log("║           RISC-V INSTRUCTION DETECTOR & SIMULATOR             ║");
+    console.log("╚═══════════════════════════════════════════════════════════════╝");
+    
+    console.log("\n--- Parsing Instructions ---");
+    input.split("\n").forEach((line, index) => {
         const trimmedLine = line.trim();
         if (!trimmedLine) return;
         
-        const instructionDetector = new InstructionDetector(trimmedLine);
-        const instruction = instructionDetector.detectInstruction();
-        console.log(instruction.formatedString());
-        instructionsInFile.push(instruction);
+        try {
+            const instructionDetector = new InstructionDetector(trimmedLine);
+            const instruction = instructionDetector.detectInstruction();
+            console.log(`[${(index + 1).toString().padStart(2, '0')}] Hex: ${trimmedLine.padEnd(8)} -> ${instruction.formatedString()}`);
+            instructionsInFile.push(instruction);
+        } catch (e) {
+            console.error(`Error parsing line ${index + 1}: ${trimmedLine}`);
+        }
     });
+
     const conflictedInstructions = conflictsDetectorPipelineClassico(instructionsInFile);
-    console.log("Conflitos detectados Sem o Fowarding:");
-    conflictedInstructions.forEach(conflict => {
-        console.log(conflict.INSTRUCTION.formatedString());
-    });
-    console.log("Conflitos detectados Com o Fowarding:");
     const conflictedInstructionsWithForwarding = conflictsDetectorPipelineClassico(instructionsInFile, "FORWARDING");
-    conflictedInstructionsWithForwarding.forEach(conflict => {
-        console.log(conflict.INSTRUCTION.formatedString(), conflict.INSTRUCTION.getType());
-    });
-    console.log("Conflitos resolvidos Sem o Fowarding:");
+    
+    console.log("\n--- Pipeline Analysis ---");
+    console.log(`Total Instructions: ${instructionsInFile.length}`);
+    console.log(`Conflicts (Classic):    ${conflictedInstructions.length}`);
+    console.log(`Conflicts (Forwarding): ${conflictedInstructionsWithForwarding.length}`);
+
     const resolvedInstructions = ResolveConflict(conflictedInstructions, instructionsInFile);
-    resolvedInstructions.forEach(instruction => {
-        console.log(instruction.formatedString());
-    });
-    console.log("Conflitos resolvidos Com o Fowarding:");
     const resolvedInstructionsWithForwarding = ResolveConflict(conflictedInstructionsWithForwarding, instructionsInFile);
-    resolvedInstructionsWithForwarding.forEach(instruction => {
-        console.log(instruction.formatedString());
-    });
+
+    console.log("\n--- Simulation (Original Code) ---");
+    const simulator = new RISCVSimulator(instructionsInFile);
+    simulator.run();
+    simulator.printState();
+
+} catch (err) {
+    console.error("Could not read input file:", inputFile);
+}

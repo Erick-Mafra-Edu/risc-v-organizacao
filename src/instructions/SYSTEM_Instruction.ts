@@ -1,13 +1,19 @@
 import { Instruction, InstructionOpcode, Register } from "../instructionsType";
 
 class SYSTEM_Instruction extends Instruction {
-    private funct3: string;
-    private rs1: Register;
-    private rd: Register;
-    private imm: string;
+    public funct3: string;
+    public rs1: Register;
+    public rd: Register;
+    public imm: string;
+
+    public getMnemonic(): string {
+        if (this.imm === "000000000000") return "ecall";
+        if (this.imm === "000000000001") return "ebreak";
+        return `system_${this.imm}`;
+    }
 
     public formatedString(): string {
-        return `Instruction of Type SYSTEM with funct3: ${this.funct3}, rs1: ${this.rs1.ABIName}, rd: ${this.rd.ABIName}, imm: ${this.imm}`;
+        return this.getMnemonic();
     }
 
     constructor(
@@ -18,7 +24,7 @@ class SYSTEM_Instruction extends Instruction {
         imm: string
     ) {
         super(opcode);
-        if (this.getOpcode() !== InstructionOpcode.SYSTEM_Type) {
+        if (this.opcode !== InstructionOpcode.SYSTEM_Type) {
             throw new Error("Opcode must be SYSTEM_Type for SYSTEM_Instruction");
         }
         this.rd = new Register(rd);
@@ -27,20 +33,9 @@ class SYSTEM_Instruction extends Instruction {
         this.imm = imm;
     }
 
-    public getOpcode(): InstructionOpcode {
-        return (this as any).opcode;
-    }
-    /**
-     * SYSTEM instructions typically read from rs1
-     * @returns rs1 as the register read by SYSTEM instructions
-     */
     public reads(): string[] | null {
         return [this.rs1.ABIName]; 
     }
-    /**
-     * SYSTEM instructions typically write to rd
-     * @returns rd as the register written by SYSTEM instructions
-     */
     public writes(): string[] | null {
         return [this.rd.ABIName]; 
     }

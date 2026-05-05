@@ -1,11 +1,34 @@
 import { Instruction, InstructionOpcode, Register } from "../instructionsType";
 class B_Instruction extends Instruction {
-    private funct3:string;
-    private rs1: Register;
-    private rs2: Register;
-    private imm:string;
+    public funct3:string;
+    public rs1: Register;
+    public rs2: Register;
+    public imm:string;
+
+    public getMnemonic(): string {
+        switch (this.funct3) {
+            case "000": return "beq";
+            case "001": return "bne";
+            case "100": return "blt";
+            case "101": return "bge";
+            case "110": return "bltu";
+            case "111": return "bgeu";
+        }
+        return `b_type_${this.funct3}`;
+    }
+
+    private getImmediateValue(): number {
+        const val = parseInt(this.imm, 2);
+        if (this.imm[0] === '1') { // 13-bit sign extension (since it's already imm + "0")
+            return val - Math.pow(2, 13);
+        }
+        return val;
+    }
+
     public formatedString(): string {
-        return `Instruction of Type B with funct3:${this.funct3} and rs1:${this.rs1.ABIName} and rs2:${this.rs2.ABIName} and imm:${this.imm}` 
+        const mnemonic = this.getMnemonic();
+        const immVal = this.getImmediateValue();
+        return `${mnemonic} ${this.rs1.ABIName}, ${this.rs2.ABIName}, ${immVal}`;
     }
     constructor(
         opcode:InstructionOpcode | string,

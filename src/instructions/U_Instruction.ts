@@ -1,9 +1,16 @@
 import { Instruction, InstructionOpcode, Register } from "../instructionsType";
 class U_Instruction extends Instruction {
-    private rd: Register;
-    private imm:string;
-        public formatedString(): string {
-            return `Instruction of Type U with rd:${this.rd.ABIName} and imm:${this.imm}` 
+    public rd: Register;
+    public imm:string;
+
+    public getMnemonic(): string {
+        return this.opcode === InstructionOpcode.ULUI_Type ? "lui" : "auipc";
+    }
+
+    public formatedString(): string {
+        const mnemonic = this.getMnemonic();
+        const immVal = parseInt(this.imm, 2);
+        return `${mnemonic} ${this.rd.ABIName}, 0x${immVal.toString(16).toUpperCase()}`;
     }
     constructor(
         opcode:string,

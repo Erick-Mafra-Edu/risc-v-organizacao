@@ -22,11 +22,13 @@ enum InstructionOpcode {
 
 class Register {
     public ABIName: string;
-    public binary:string;
+    public binary: string;
+    public index: number;
 
     constructor(binary: string) {
         this.binary = binary;
-        this.ABIName = this.getABIName(Number.parseInt(binary, 2));
+        this.index = Number.parseInt(binary, 2);
+        this.ABIName = this.getABIName(this.index);
     }
     public getABIName(index: number): string {
         // 1. Casos Únicos (Especiais)
@@ -55,8 +57,9 @@ class Register {
     }
 }
 abstract class Instruction {
-    protected opcode: InstructionOpcode | null;
+    public opcode: InstructionOpcode | null;
     public abstract formatedString(): string;
+    public abstract getMnemonic(): string;
 
     constructor(opcode: InstructionOpcode | string) {
         // Se vier string, tenta converter para um valor válido.

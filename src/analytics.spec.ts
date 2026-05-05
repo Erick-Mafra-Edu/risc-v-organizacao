@@ -64,8 +64,9 @@ describe("Analytics Logic", () => {
         console.log("LOAD Hazard - Classic Stalls:", classicStalls);
         console.log("LOAD Hazard - Forwarding Stalls:", forwardingStalls);
         
-        // According to current impl:
-        // Classic: distance = 1, stallCycles = 1
-        // Forwarding: distance = 1, stallCycles = max(1-1, 0) = 0
+        // Classic pipeline: load-use at dist=1 → 2 stalls (same as any RAW without forwarding)
+        // Forwarding pipeline: load-use at dist=1 → 1 stall (data available only after MEM)
+        expect(classicStalls).toBe(2);
+        expect(forwardingStalls).toBe(1);
     });
 });

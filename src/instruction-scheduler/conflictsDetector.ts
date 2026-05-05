@@ -28,11 +28,11 @@ function detectWARConflict(previousReads: string[], currentReads: string[], curr
 
 /**
  * filtra utilizando os conflitos já encontrados apenas verificamos se necessita de stall/nop
- * @param instructions  recebe array de conflitos já filtrados pelos conflitos sem fowarding
+ * @param conflicts  recebe array de conflitos já filtrados pelos conflitos sem forwarding
  */
 function forwardConflicts(conflicts: Conflicts[]): Conflicts[] {
   return conflicts.filter((conflict) => {
-    return controlConflict(conflict.INSTRUCTION) || loadConflict(conflict.INSTRUCTION);
+    return conflict.Type === "CONTROL" || conflict.Type === "LOAD";
   });
 }
 function controlConflict(instruction:Instruction):boolean {
@@ -83,13 +83,25 @@ function conflictsDetectorPipelineClassico(
         needsStall = true;
         stallCycles = 2;
       } else if (isLoadHazard) {
-        needsStall = true;
+        // dist=1: immediate load-use; dist=2: one instruction gap
         const distance = raw1 ? 1 : 2;
-        needsStall = true;
-        stallCycles = PipelineMode === "CLASSIC" ? distance : Math.max(distance - 1, 0);
+        if (PipelineMode === "CLASSIC") {
+          // Without forwarding, a load hazard behaves like any RAW: 2 stalls at
+          // dist=1 and 1 stall at dist=2.
+          needsStall = true;
+          stallCycles = distance === 1 ? 2 : 1;
+        } else {
+          // With forwarding, a load-use at dist=1 still needs 1 stall because
+          // the memory result is not available until after the MEM stage.
+          // At dist=2 the data can be forwarded from WB with no stall.
+          needsStall = distance === 1;
+          stallCycles = distance === 1 ? 1 : 0;
+        }
       } else if (type === "RAW") {
+        // dist=1 → 2 stalls (Classic), dist=2 → 1 stall (Classic).
+        // With forwarding, RAW conflicts are resolved without stalls.
         needsStall = PipelineMode === "CLASSIC";
-        stallCycles = PipelineMode === "CLASSIC" ? 2 : 1;
+        stallCycles = PipelineMode === "CLASSIC" ? (raw1 ? 2 : 1) : 0;
       }
 
       returnInstruction.push({

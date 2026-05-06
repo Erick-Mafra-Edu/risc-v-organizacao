@@ -184,7 +184,9 @@ export class PipelineSimulator {
         let nopsInserted = 0;
 
         if (this.mode === "NOP") {
-            instructions = this.insertNOPs(instructions);
+            const { expanded, origToNew } = this.insertNOPs(instructions);
+            this.recalculateBranchOffsets(instructions, expanded, origToNew);
+            instructions = expanded;
             nopsInserted = instructions.filter(d => d.isNop).length;
         }
 
@@ -201,12 +203,20 @@ export class PipelineSimulator {
      *   distance 1 → 2 NOPs needed
      *   distance 2 → 1 NOP needed
      *   distance ≥ 3 → no NOP needed
+     *
+     * Returns the expanded instruction array together with a mapping from
+     * each original instruction index to its new index in the expanded array.
+     * This mapping is used by recalculateBranchOffsets.
      */
-    private insertNOPs(decoded: DecodedInstruction[]): DecodedInstruction[] {
+    private insertNOPs(decoded: DecodedInstruction[]): {
+        expanded: DecodedInstruction[];
+        origToNew: number[];
+    } {
         const result: DecodedInstruction[] = [];
+        const origToNew: number[] = [];
         const nopTemplate = decodeInstruction(NOP_HEX);
 
-        for (const current of decoded) {
+        for (const [origIdx, current] of decoded.entries()) {
             const n = result.length;
 
             // Find the last two real (non-NOP) instructions already in result
@@ -242,10 +252,61 @@ export class PipelineSimulator {
             for (let k = 0; k < nopsNeeded; k++) {
                 result.push({ ...nopTemplate });
             }
+            origToNew[origIdx] = result.length;
             result.push(current);
         }
 
-        return result;
+        return { expanded: result, origToNew };
+    }
+
+    /**
+     * After NOP insertion the instruction memory layout changes.  BRANCH
+     * (B-type) and JAL (J-type) instructions encode a PC-relative byte
+     * offset, so those offsets must be recalculated to reflect the new
+     * positions.  JALR (I-type JUMP) uses a register + immediate target and
+     * cannot be recalculated statically — it is left unchanged.
+     *
+     * @param original  The original decoded instructions (before NOP insertion).
+     * @param expanded  The expanded instruction array (after NOP insertion).
+     * @param origToNew Mapping: original index → index in the expanded array.
+     */
+    private recalculateBranchOffsets(
+        original: DecodedInstruction[],
+        expanded: DecodedInstruction[],
+        origToNew: number[],
+    ): void {
+        for (let origIdx = 0; origIdx < original.length; origIdx++) {
+            const instr = original[origIdx];
+
+            // Only B-type (BRANCH) and JAL (J-type JUMP) use PC-relative imm
+            if (
+                instr.type !== "BRANCH" &&
+                !(instr.type === "JUMP" && instr.mnemonic === "JAL")
+            ) {
+                continue;
+            }
+
+            // Compute original target instruction index from the encoded imm
+            const origPc         = origIdx * 4;
+            const targetByteAddr = origPc + instr.imm;
+            const origTargetIdx  = targetByteAddr / 4;
+
+            // Skip if the target falls outside the original program
+            if (
+                !Number.isInteger(origTargetIdx) ||
+                origTargetIdx < 0 ||
+                origTargetIdx >= original.length
+            ) {
+                continue;
+            }
+
+            const newInstrIdx  = origToNew[origIdx];
+            const newTargetIdx = origToNew[origTargetIdx];
+            if (newInstrIdx === undefined || newTargetIdx === undefined) continue;
+
+            // Rewrite the immediate in the expanded array entry
+            expanded[newInstrIdx].imm = (newTargetIdx - newInstrIdx) * 4;
+        }
     }
 
     // ─────────────────────────────────────────────────────────────────────────

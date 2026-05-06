@@ -401,6 +401,49 @@ describe("PipelineSimulator — NOP mode", () => {
 });
 
 // ─────────────────────────────────────────────────────────────────────────────
+// NOP mode — branch offset recalculation after NOP insertion
+// ─────────────────────────────────────────────────────────────────────────────
+describe("PipelineSimulator — NOP mode branch offset recalculation", () => {
+    //
+    // Original program (5 instructions, byte addresses 0..16):
+    //
+    //   idx 0  0x00500093  addi x1, x0, 5     — writes x1 = 5
+    //   idx 1  0x00000663  beq  x0, x0, +12   — always taken; original target = idx 3 (pc=4+12=16)
+    //   idx 2  0x00008113  addi x2, x1, 0     — reads x1 (distance-2 RAW → 1 NOP inserted before it)
+    //   idx 3  0x06300193  addi x3, x0, 99    — sentinel: only reachable via a wrong branch target
+    //   idx 4  0x00700213  addi x4, x0, 7     — correct branch target → x4 = 7
+    //
+    // After NOP insertion the expanded array is (6 entries):
+    //   [addi x1, beq, NOP(ins), addi x2, addi x3(99), addi x4(7)]
+    //    new idx:  0    1    2          3         4             5
+    //
+    // origToNew = [0, 1, 3, 4, 5]
+    //
+    // Without recalculation beq.imm stays +12 → branchTarget = 4+12 = 16
+    //   → targetIdx = 4 → expanded[4] = addi x3(99) → x3 = 99  (WRONG)
+    //
+    // With correct recalculation beq.imm becomes +16 → branchTarget = 4+16 = 20
+    //   → targetIdx = 5 → expanded[5] = addi x4(7) → x3 untouched = 0  (CORRECT)
+    //
+    test("beq offset recalculated after 1 NOP inserted before an intermediate instruction", () => {
+        const result = new PipelineSimulator("NOP").simulate([
+            "00500093",  // addi x1, x0, 5
+            "00000663",  // beq  x0, x0, +12   (orig target = idx 4)
+            "00008113",  // addi x2, x1, 0     (dist-2 RAW → 1 NOP inserted)
+            "06300193",  // addi x3, x0, 99    (wrong-path sentinel — must NOT execute)
+            "00700213",  // addi x4, x0, 7     (correct target)
+        ]);
+
+        // Correct target must have executed
+        expect(result.registers[4]).toBe(7);
+        // Sentinel must NOT have executed (proves the branch landed on idx 5, not idx 4)
+        expect(result.registers[3]).toBe(0);
+        // Exactly 1 NOP was inserted (for the dist-2 RAW on addi x2)
+        expect(result.nopsInserted).toBe(1);
+    });
+});
+
+// ─────────────────────────────────────────────────────────────────────────────
 // Metrics comparison across modes
 // ─────────────────────────────────────────────────────────────────────────────
 describe("Metrics — mode comparison", () => {

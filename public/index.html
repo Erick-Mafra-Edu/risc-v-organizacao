@@ -739,6 +739,15 @@
             </div>`;
         }
 
+        if (resolved.nopIndexes) {
+            const nopPositions = resolved.nopIndexes
+                .map(index => Number(index) + 1)
+                .join(', ');
+            html += `<div class="alert alert-warning mb-3">
+                <strong>NOPs inseridos nas posicoes:</strong> ${nopPositions || '-'}
+            </div>`;
+        }
+
         // Original instructions
         html += `<h6 class="mt-4 mb-3">📋 Original Instructions:</h6>
             <div class="table-responsive">

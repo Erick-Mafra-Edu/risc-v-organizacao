@@ -229,4 +229,27 @@ describe("ResolveConflict address recalculation", () => {
 
     expect(resolved.addressMap).toEqual({ 0: 2 });
   });
+
+  test("returns the resolved indexes where NOPs were inserted", () => {
+    const producer = new I_Instruction(
+      InstructionOpcode.IAL_Type,
+      "00001",
+      "000",
+      "00000",
+      "000000000001"
+    );
+    const consumer = new R_Instruction(
+      InstructionOpcode.R_Type,
+      "00010",
+      "000",
+      "00001",
+      "00000",
+      "0000000"
+    );
+
+    const conflicts = conflictsDetectorPipelineClassico([producer, consumer], "CLASSIC");
+    const resolved = ResolveConflictWithAddressMap(conflicts, [producer, consumer]);
+
+    expect(resolved.nopIndexes).toEqual([1, 2]);
+  });
 });

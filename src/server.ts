@@ -215,6 +215,7 @@ app.post("/api/resolve-conflicts", (req, res) => {
                 total: resolvedInstructions.length,
                 nopsInserted: resolvedInstructions.length - hexInstructions.length,
                 addressMap: resolved.addressMap,
+                nopIndexes: resolved.nopIndexes,
                 instructions: resolvedResults
             },
             mode: mode

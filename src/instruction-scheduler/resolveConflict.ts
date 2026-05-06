@@ -25,6 +25,7 @@ function ResolveConflict(
 interface ResolvedInstructions {
   instructions: Instruction[];
   addressMap: Record<number, number>;
+  nopIndexes: number[];
 }
 
 function ResolveConflictWithAddressMap(
@@ -33,12 +34,14 @@ function ResolveConflictWithAddressMap(
 ): ResolvedInstructions {
   const result: Instruction[] = [];
   const oldToNewIndex = new Map<number, number>();
+  const nopIndexes: number[] = [];
 
   originalInstructions.forEach((instruction, index) => {
     const conflict = conflicts.find(c => c.Index === index);
 
     if (conflict && conflict.NeedsStall) {
       for (let i = 0; i < conflict.StallCycles; i++) {
+        nopIndexes.push(result.length);
         result.push(createNopInstruction());
       }
     }
@@ -79,7 +82,8 @@ function ResolveConflictWithAddressMap(
 
   return {
     instructions: recalculatedInstructions,
-    addressMap: Object.fromEntries(oldToNewIndex.entries())
+    addressMap: Object.fromEntries(oldToNewIndex.entries()),
+    nopIndexes
   };
 }
 

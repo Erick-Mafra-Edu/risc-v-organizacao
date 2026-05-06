@@ -1,4 +1,4 @@
-import { formatDisplayInDecimal } from "./process-file";
+import { formatDisplayInDecimal, formatOneBasedIndexes } from "./process-file";
 
 describe("process-file formatting", () => {
     test("should keep register and funct fields unsigned while sign-extending imm", () => {
@@ -15,5 +15,10 @@ describe("process-file formatting", () => {
         expect(formatDisplayInDecimal(formattedInstruction)).toBe(
             "Instruction of Type B with funct3:0 and rs1:10 and rs2:10 and imm:4"
         );
+    });
+
+    test("should format inserted NOP indexes for terminal output", () => {
+        expect(formatOneBasedIndexes([0, 2, 3])).toBe("1, 3, 4");
+        expect(formatOneBasedIndexes([])).toBe("-");
     });
 });

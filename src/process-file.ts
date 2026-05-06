@@ -1,6 +1,9 @@
 import * as fs from "fs";
 import * as path from "path";
 import { InstructionDetector } from "./instructionDetector";
+import { conflictsDetectorPipelineClassico, forwardConflicts } from "./instruction-scheduler/conflictsDetector";
+import { ResolveConflictWithAddressMap } from "./instruction-scheduler/resolveConflict";
+import { Instruction } from "./instructionsType";
 
 const parseBinaryValue = (binary: string, signed: boolean): number => {
     const value = parseInt(binary, 2);
@@ -59,6 +62,32 @@ const formatDisplayInDecimal = (formattedInstruction: string): string => {
     return resultado;
 };
 
+const formatOneBasedIndexes = (indexes: number[]): string => {
+    if (indexes.length === 0) {
+        return "-";
+    }
+
+    return indexes.map(index => index + 1).join(", ");
+};
+
+const printResolutionSummary = (
+    title: string,
+    instructions: Instruction[],
+    conflicts: ReturnType<typeof conflictsDetectorPipelineClassico>
+): void => {
+    const resolved = ResolveConflictWithAddressMap(conflicts, instructions);
+
+    console.log(`\n${title}`);
+    console.log(`     Conflitos detectados: ${conflicts.length}`);
+    console.log(`     Total original:       ${instructions.length}`);
+    console.log(`     Total resolvido:      ${resolved.instructions.length}`);
+    console.log(`     NOPs inseridos:       ${resolved.nopIndexes.length}`);
+    console.log(`     Posicoes dos NOPs:    ${formatOneBasedIndexes(resolved.nopIndexes)}`);
+    console.log(`     Mapa antigo -> novo:  ${Object.entries(resolved.addressMap)
+        .map(([oldIndex, newIndex]) => `${Number(oldIndex) + 1}->${newIndex + 1}`)
+        .join(", ") || "-"}`);
+};
+
 const processInstructionFile = (filePath: string): void => {
     // Verifica se o arquivo existe antes de continuar.
     if (!fs.existsSync(filePath)) {
@@ -80,6 +109,7 @@ const processInstructionFile = (filePath: string): void => {
 
     let successCount = 0;
     let errorCount = 0;
+    const parsedInstructions: Instruction[] = [];
 
     instructions.forEach((hexInstruction: string, index: number) => {
         try {
@@ -92,6 +122,7 @@ const processInstructionFile = (filePath: string): void => {
 
             // Detecta o tipo da instrucao a partir do binario.
             const instruction = detector.detectInstruction();
+            parsedInstructions.push(instruction);
 
             console.log(`\n[${String(index + 1).padStart(3)}] Successo`);
             console.log(`     Hexadecimal: ${trimmedHex.toUpperCase()}`);
@@ -108,6 +139,20 @@ const processInstructionFile = (filePath: string): void => {
 
     void successCount;
     void errorCount;
+
+    if (parsedInstructions.length > 0) {
+        console.log("\n===================================================================");
+        console.log("|              Resumo de Resolucao de Conflitos                  |");
+        console.log("===================================================================");
+
+        const classicConflicts = conflictsDetectorPipelineClassico(parsedInstructions, "CLASSIC");
+        printResolutionSummary("CLASSIC (sem forwarding)", parsedInstructions, classicConflicts);
+
+        const forwardingConflicts = forwardConflicts(
+            conflictsDetectorPipelineClassico(parsedInstructions, "FORWARDING")
+        );
+        printResolutionSummary("FORWARDING (com forwarding)", parsedInstructions, forwardingConflicts);
+    }
 };
 
 if (require.main === module) {
@@ -117,4 +162,4 @@ if (require.main === module) {
     processInstructionFile(filePath);
 }
 
-export { formatDisplayInDecimal, processInstructionFile };
+export { formatDisplayInDecimal, formatOneBasedIndexes, processInstructionFile };

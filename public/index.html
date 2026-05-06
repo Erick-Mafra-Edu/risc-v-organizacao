@@ -56,6 +56,11 @@
         .badge-store { background: #e74c3c; color: white; }
         .badge-branch { background: #f39c12; color: white; }
         .badge-jump { background: #9b59b6; color: white; }
+        .badge-raw { background: #d35400; color: white; }
+        .badge-load-hazard { background: #16a085; color: white; }
+        .badge-control { background: #8e44ad; color: white; }
+        .badge-waw { background: #2c3e50; color: white; }
+        .badge-war { background: #7f8c8d; color: white; }
         .btn-custom {
             border-radius: 5px;
             font-weight: 500;
@@ -560,8 +565,11 @@
                 <thead>
                     <tr>
                         <th>Type</th>
+                        <th>Hazard</th>
                         <th>Reads</th>
                         <th>Writes</th>
+                        <th>Stalls</th>
+                        <th>Explanation</th>
                         <th>Details</th>
                     </tr>
                 </thead>
@@ -569,13 +577,17 @@
 
         data.conflicts.forEach((conflict, idx) => {
             const typeColor = getTypeColor(conflict.type);
+            const hazardColor = getHazardColor(conflict.conflictType);
             const reads = conflict.reads?.join(', ') || '-';
             const writes = conflict.writes?.join(', ') || '-';
             
             html += `<tr style="background: #ffe6e6;">
                 <td><span class="badge-custom ${typeColor}">${conflict.type}</span></td>
+                <td><span class="badge-custom ${hazardColor}">${conflict.conflictType}</span></td>
                 <td><span class="instr-register">${reads}</span></td>
                 <td><span class="instr-register">${writes}</span></td>
+                <td><span class="instr-immediate">${conflict.stallCycles}</span></td>
+                <td><small>${conflict.explanation || describeHazard(conflict.conflictType)}</small></td>
                 <td><small>${conflict.parsed}</small></td>
             </tr>`;
         });
@@ -658,6 +670,28 @@
         return colors[type] || 'badge-alu';
     }
 
+    function getHazardColor(type) {
+        const colors = {
+            'RAW': 'badge-raw',
+            'LOAD': 'badge-load-hazard',
+            'CONTROL': 'badge-control',
+            'WAW': 'badge-waw',
+            'WAR': 'badge-war'
+        };
+        return colors[type] || 'badge-raw';
+    }
+
+    function describeHazard(type) {
+        const descriptions = {
+            'RAW': 'Leitura apos escrita: a instrucao atual precisa de um registrador que ainda sera escrito por uma instrucao anterior.',
+            'LOAD': 'Load-use: a instrucao atual usa o valor carregado por uma instrucao anterior antes dele estar disponivel.',
+            'CONTROL': 'Controle: branch ou jump pode alterar o fluxo e exige bolhas ate o proximo PC ser conhecido.',
+            'WAW': 'Escrita apos escrita: duas instrucoes proximas escrevem no mesmo registrador.',
+            'WAR': 'Escrita apos leitura: a instrucao atual escreve em um registrador lido por uma instrucao anterior.'
+        };
+        return descriptions[type] || 'Conflito detectado no pipeline.';
+    }
+
     async function resolveConflicts() {
         const input = document.getElementById('inputHex').value.trim();
         const hexInstructions = input.split('\n').filter(line => line.trim());
@@ -695,6 +729,24 @@
             🔧 Resolved: <strong>${resolved.total} instructions</strong> 
             (<strong style="color: #e74c3c;">+${resolved.nopsInserted} NOP(s) inserted</strong>)
         </div>`;
+
+        if (resolved.addressMap) {
+            const mappings = Object.entries(resolved.addressMap)
+                .map(([oldIndex, newIndex]) => `${Number(oldIndex) + 1} → ${Number(newIndex) + 1}`)
+                .join(', ');
+            html += `<div class="alert alert-secondary mb-3">
+                <strong>Mapa de indices recalculado:</strong> ${mappings || '-'}
+            </div>`;
+        }
+
+        if (resolved.nopIndexes) {
+            const nopPositions = resolved.nopIndexes
+                .map(index => Number(index) + 1)
+                .join(', ');
+            html += `<div class="alert alert-warning mb-3">
+                <strong>NOPs inseridos nas posicoes:</strong> ${nopPositions || '-'}
+            </div>`;
+        }
 
         // Original instructions
         html += `<h6 class="mt-4 mb-3">📋 Original Instructions:</h6>

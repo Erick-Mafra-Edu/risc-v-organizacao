@@ -46,9 +46,9 @@
 ---
 
 ## 📍 Recalcular Endereços (IMPORTANTE)
-- [ ] Mapear índices antigos → novos
-- [ ] Recalcular imediato de BRANCH
-- [ ] Recalcular imediato de JUMP
+- [x] Mapear índices antigos → novos
+- [x] Recalcular imediato de BRANCH
+- [x] Recalcular imediato de JUMP
 
 ---
 

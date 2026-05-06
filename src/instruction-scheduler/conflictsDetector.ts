@@ -32,7 +32,7 @@ function detectWARConflict(previousReads: string[], currentReads: string[], curr
  */
 function forwardConflicts(conflicts: Conflicts[]): Conflicts[] {
   return conflicts.filter((conflict) => {
-    return controlConflict(conflict.INSTRUCTION) || loadConflict(conflict.INSTRUCTION);
+    return conflict.Type === "CONTROL" || conflict.Type === "LOAD";
   });
 }
 function controlConflict(instruction:Instruction):boolean {
@@ -55,10 +55,19 @@ function conflictsDetectorPipelineClassico(
 
     const previousWrites = filterZeroRegisters(previousInstruction?.writes() ?? []);
     const previousWrites2 = filterZeroRegisters(previousInstruction2?.writes() ?? []);
+    const previousReads = filterZeroRegisters(previousInstruction?.reads() ?? []);
+    const previousReads2 = filterZeroRegisters(previousInstruction2?.reads() ?? []);
     const currentReads = filterZeroRegisters(instruction.reads() ?? []);
+    const currentWrites = filterZeroRegisters(instruction.writes() ?? []);
 
     const raw1 = detectRAWConflict(previousWrites, currentReads);
     const raw2 = detectRAWConflict(previousWrites2, currentReads);
+    const waw =
+      detectWAWConflict(previousWrites, currentWrites) ||
+      detectWAWConflict(previousWrites2, currentWrites);
+    const war =
+      detectWARConflict(previousReads, currentReads, currentWrites) ||
+      detectWARConflict(previousReads2, currentReads, currentWrites);
     const loadHazard1 =
       previousInstruction !== undefined &&
       loadConflict(previousInstruction) &&
@@ -70,10 +79,12 @@ function conflictsDetectorPipelineClassico(
     const isLoadHazard = loadHazard1 || loadHazard2;
     const isControl = controlConflict(instruction);
 
-    if (raw1 || raw2 || isControl) {
+    if (raw1 || raw2 || isControl || waw || war) {
       let type: Conflicts["Type"] =
         isControl ? "CONTROL" :
         isLoadHazard ? "LOAD" :
+        waw ? "WAW" :
+        war ? "WAR" :
         "RAW";
 
       let needsStall = false;
@@ -86,7 +97,7 @@ function conflictsDetectorPipelineClassico(
         needsStall = true;
         const distance = raw1 ? 1 : 2;
         needsStall = true;
-        stallCycles = PipelineMode === "CLASSIC" ? distance : Math.max(distance - 1, 0);
+        stallCycles = PipelineMode === "CLASSIC" ? distance : Math.max(2 - distance, 0);
       } else if (type === "RAW") {
         needsStall = PipelineMode === "CLASSIC";
         stallCycles = PipelineMode === "CLASSIC" ? 2 : 1;

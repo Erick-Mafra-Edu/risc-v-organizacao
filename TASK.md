@@ -15,8 +15,8 @@
 ### Dados
 - [x] Detectar RAW
 - [x] Detectar LOAD hazard
-- [ ] Detectar WAW (extra)
-- [ ] Detectar WAR (extra)
+- [x] Detectar WAW (extra)
+- [x] Detectar WAR (extra)
 
 ### Controle
 - [x] Detectar BRANCH
@@ -46,9 +46,9 @@
 ---
 
 ## 📍 Recalcular Endereços (IMPORTANTE)
-- [ ] Mapear índices antigos → novos
-- [ ] Recalcular imediato de BRANCH
-- [ ] Recalcular imediato de JUMP
+- [x] Mapear índices antigos → novos
+- [x] Recalcular imediato de BRANCH
+- [x] Recalcular imediato de JUMP
 
 ---
 
@@ -71,7 +71,7 @@
 ---
 
 ## 📝 Relatório (para entrega)
-- [ ] Tabela de conflitos detectados
-- [ ] Explicação dos hazards
+- [x] Tabela de conflitos detectados
+- [x] Explicação dos hazards
 - [x] Comparação sem vs com forwarding
 - [x] Impacto no número de instruções

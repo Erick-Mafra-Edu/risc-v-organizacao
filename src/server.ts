@@ -5,7 +5,7 @@ import * as fs from "fs";
 import fileUpload from "express-fileupload";
 import { InstructionDetector } from "./instructionDetector";
 import { conflictsDetectorPipelineClassico, forwardConflicts } from "./instruction-scheduler/conflictsDetector";
-import { ResolveConflict } from "./instruction-scheduler/resolveConflict";
+import { ResolveConflictWithAddressMap } from "./instruction-scheduler/resolveConflict";
 import { Instruction } from "./instructionsType";
 
 const app = express();
@@ -15,6 +15,23 @@ app.use(cors());
 app.use(express.json());
 app.use(fileUpload());
 app.use(express.static(path.join(__dirname, "../public")));
+
+const describeHazard = (type: string): string => {
+    switch (type) {
+        case "RAW":
+            return "Leitura apos escrita: a instrucao atual precisa de um registrador que ainda sera escrito por uma instrucao anterior.";
+        case "LOAD":
+            return "Load-use: a instrucao atual usa o valor carregado por uma instrucao anterior antes dele estar disponivel.";
+        case "WAW":
+            return "Escrita apos escrita: duas instrucoes proximas escrevem no mesmo registrador.";
+        case "WAR":
+            return "Escrita apos leitura: a instrucao atual escreve em um registrador lido por uma instrucao anterior.";
+        case "CONTROL":
+            return "Controle: branch ou jump pode alterar o fluxo e exige bolhas ate o proximo PC ser conhecido.";
+        default:
+            return "Conflito detectado no pipeline.";
+    }
+};
 
 // Health check
 app.get("/api/health", (req, res) => {
@@ -114,7 +131,8 @@ app.post("/api/detect-conflicts", (req, res) => {
             conflictType: conflict.Type,
             index: conflict.Index,
             needsStall: conflict.NeedsStall,
-            stallCycles: conflict.StallCycles
+            stallCycles: conflict.StallCycles,
+            explanation: describeHazard(conflict.Type)
         }));
 
         res.json({
@@ -155,7 +173,8 @@ app.post("/api/resolve-conflicts", (req, res) => {
         }
 
         // Resolve conflicts by inserting NOPs
-        const resolvedInstructions = ResolveConflict(conflictingInstructions, instructions);
+        const resolved = ResolveConflictWithAddressMap(conflictingInstructions, instructions);
+        const resolvedInstructions = resolved.instructions;
 
         // Helper function to detect NOP instructions
         const isNopInstruction = (instr: Instruction): boolean => {
@@ -195,6 +214,7 @@ app.post("/api/resolve-conflicts", (req, res) => {
             resolved: {
                 total: resolvedInstructions.length,
                 nopsInserted: resolvedInstructions.length - hexInstructions.length,
+                addressMap: resolved.addressMap,
                 instructions: resolvedResults
             },
             mode: mode

@@ -23,6 +23,33 @@ class B_Instruction extends Instruction {
         this.rs2 = new Register(rs2);
         this.imm = imm + "0";
     }
+    public getImmediate(): string {
+        return this.imm;
+    }
+    public getImmediateValue(): number {
+        const value = parseInt(this.imm, 2);
+        return (value << (32 - this.imm.length)) >> (32 - this.imm.length);
+    }
+    public withImmediateValue(offsetBytes: number): B_Instruction {
+        return new B_Instruction(
+            InstructionOpcode.B_Type,
+            B_Instruction.encodeImmediate(offsetBytes),
+            this.funct3,
+            this.rs1.binary,
+            this.rs2.binary
+        );
+    }
+    private static encodeImmediate(offsetBytes: number): string {
+        if (offsetBytes % 2 !== 0) {
+            throw new Error("B-Type immediate must be aligned to 2 bytes");
+        }
+        if (offsetBytes < -4096 || offsetBytes > 4094) {
+            throw new Error("B-Type immediate out of range");
+        }
+
+        const encoded = (offsetBytes & 0x1fff).toString(2).padStart(13, "0");
+        return encoded.slice(0, 12);
+    }
     /**
      * B-Type instructions typically read from rs1 and rs2
      * @returns rs1 and rs2 as the registers read by B-Type instructions
